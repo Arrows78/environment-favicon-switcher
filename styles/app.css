@@ -25,6 +25,9 @@ button, .import-button {
   border-radius: 10px;
   padding: 10px 14px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   transition: transform .12s ease, border-color .12s ease, background .12s ease;
 }
 button:hover, .import-button:hover { transform: translateY(-1px); border-color: #cbd5e1; }
@@ -59,7 +62,9 @@ label input, label textarea, label select { color: var(--text); }
 .hero p { margin: 0; color: var(--muted); max-width: 760px; line-height: 1.6; }
 .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 700; color: var(--primary) !important; margin-bottom: 8px !important; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; min-width: 300px; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; min-width: 300px; align-items: flex-start; }
 .import-button { display: inline-flex; align-items: center; justify-content: center; color: var(--text); }
+.export-import-group { display: flex; gap: 10px; align-items: stretch; }
 .import-button input { display: none; }
 .import-button.small { min-width: 150px; }
 

@@ -3,84 +3,206 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>Configure Environment Favicon Switcher</title>
+
   <link rel="stylesheet" href="styles/app.css">
 </head>
+
 <body>
   <main class="options-page">
     <header class="hero">
       <div>
         <p class="eyebrow" data-i18n="browserExtension">Browser extension</p>
         <h1>Environment Favicon Switcher</h1>
-        <p data-i18n="optionsIntro">Customize favicons by environment, domain, or regular expression. Each user can define their own rules.</p>
+        <p data-i18n="optionsIntro">
+          Customize favicons by environment, domain, or regular expression. Each user can define their own rules.
+        </p>
       </div>
+
       <div class="hero-actions">
-        <button id="addRule" class="primary" type="button" data-i18n="addEnvironment">Add environment</button>
-        <button id="exportConfig" type="button" data-i18n="export">Export</button>
-        <label class="import-button"><span data-i18n="import">Import</span><input id="importConfig" type="file" accept="application/json"></label>
+        <button id="addRule" class="primary" type="button" data-i18n="addEnvironment">
+          Add environment
+        </button>
+        <div class="export-import-group">
+          <button id="exportConfig" type="button" data-i18n="export">Export</button>
+          <label class="import-button">
+            <span data-i18n="import">Import</span>
+            <input id="importConfig" type="file" accept="application/json">
+          </label>
+        </div>
       </div>
     </header>
+
     <section class="settings-grid">
-      <label class="setting-card"><input id="enabled" type="checkbox"> <span data-i18n="enableExtension">Enable the extension</span></label>
-      <label class="setting-card"><input id="titlePrefixEnabled" type="checkbox"> <span data-i18n="titlePrefix">Add a prefix to the tab title</span></label>
-      <label class="setting-card"><input id="reapplyOnChanges" type="checkbox"> <span data-i18n="reapplyOnChanges">Reapply when the application changes the favicon</span></label>
-      <label class="setting-card"><input id="debug" type="checkbox"> <span data-i18n="debugLogs">Debug logs in the console</span></label>
+      <label class="setting-card">
+        <input id="enabled" type="checkbox">
+        <span data-i18n="enableExtension">Enable the extension</span>
+      </label>
+
+      <label class="setting-card">
+        <input id="titlePrefixEnabled" type="checkbox">
+        <span data-i18n="titlePrefix">Add a prefix to the tab title</span>
+      </label>
+
+      <label class="setting-card">
+        <input id="reapplyOnChanges" type="checkbox">
+        <span data-i18n="reapplyOnChanges">
+          Reapply when the application changes the favicon
+        </span>
+      </label>
+
+      <label class="setting-card">
+        <input id="debug" type="checkbox">
+        <span data-i18n="debugLogs">Debug logs in the console</span>
+      </label>
     </section>
-    <section class="groups-panel" aria-label="Environment groups" data-i18n-aria-label="environmentGroups">
+
+    <section
+      class="groups-panel"
+      aria-label="Environment groups"
+      data-i18n-aria-label="environmentGroups"
+    >
       <div id="groupTabs" class="group-tabs" role="tablist"></div>
+
       <div class="group-actions">
         <button id="addGroup" type="button" data-i18n="addGroup">Add group</button>
         <button id="renameGroup" type="button" data-i18n="renameGroup">Rename</button>
-        <button id="deleteGroup" type="button" class="danger" data-i18n="deleteGroup">Delete</button>
+        <button id="deleteGroup" type="button" class="danger" data-i18n="deleteGroup">
+          Delete
+        </button>
       </div>
     </section>
+
     <section class="toolbar">
-      <input id="search" type="search" placeholder="Filter environments…" data-i18n-placeholder="filterEnvironments">
-      <button id="resetDefaults" type="button" class="danger" data-i18n="reset">Reset</button>
+      <input
+        id="search"
+        type="search"
+        placeholder="Filter environments…"
+        data-i18n-placeholder="filterEnvironments"
+      >
+      <button id="resetDefaults" type="button" class="danger" data-i18n="reset">
+        Reset
+      </button>
     </section>
-    <section id="rulesContainer" class="rules-container" aria-live="polite"></section>
+
+    <section
+      id="rulesContainer"
+      class="rules-container"
+      aria-live="polite"
+    ></section>
+
     <template id="ruleTemplate">
       <article class="rule-card">
         <div class="rule-card-header">
           <div class="rule-title">
             <span class="dot"></span>
-            <input class="rule-name" aria-label="Environment name" data-i18n-aria-label="environmentName">
+            <input
+              class="rule-name"
+              aria-label="Environment name"
+              data-i18n-aria-label="environmentName"
+            >
           </div>
+
           <div class="rule-actions">
-            <label><input class="rule-enabled" type="checkbox"> <span data-i18n="active">Active</span></label>
-            <button class="duplicate-rule" type="button" data-i18n="duplicate">Duplicate</button>
-            <button class="remove-rule danger" type="button" data-i18n="remove">Remove</button>
+            <label>
+              <input class="rule-enabled" type="checkbox">
+              <span data-i18n="active">Active</span>
+            </label>
+
+            <button class="duplicate-rule" type="button" data-i18n="duplicate">
+              Duplicate
+            </button>
+
+            <button class="remove-rule danger" type="button" data-i18n="remove">
+              Remove
+            </button>
           </div>
         </div>
+
         <div class="form-grid">
-          <label><span data-i18n="shortLabel">Short label</span><input class="rule-label" maxlength="12" placeholder="STAGING"></label>
-          <label><span data-i18n="badgeColor">Badge color</span><input class="rule-color" type="color"></label>
-          <label><span data-i18n="group">Group</span>
+          <label>
+            <span data-i18n="shortLabel">Short label</span>
+            <input
+              class="rule-label"
+              maxlength="12"
+              placeholder="STAGING"
+            >
+          </label>
+
+          <label>
+            <span data-i18n="badgeColor">Badge color</span>
+            <input class="rule-color" type="color">
+          </label>
+
+          <label>
+            <span data-i18n="group">Group</span>
             <select class="rule-group"></select>
           </label>
-          <label><span data-i18n="matchType">Match type</span>
+
+          <label>
+            <span data-i18n="matchType">Match type</span>
             <select class="rule-match-type">
-              <option value="contains" data-i18n="urlContains">URL contains</option>
-              <option value="hostname" data-i18n="hostname">Domain / subdomain</option>
-              <option value="regex" data-i18n="regularExpression">Regular expression</option>
+              <option value="contains" data-i18n="urlContains">
+                URL contains
+              </option>
+              <option value="hostname" data-i18n="hostname">
+                Domain / subdomain
+              </option>
+              <option value="regex" data-i18n="regularExpression">
+                Regular expression
+              </option>
             </select>
           </label>
-          <label class="checkbox-field"><input class="rule-keep-original" type="checkbox"> <span data-i18n="keepOriginalFavicon">Keep the original favicon</span></label>
-        </div>
-        <label><span data-i18n="urlPatterns">URL patterns, one per line</span>
-          <textarea class="rule-patterns" rows="3" placeholder="staging.example.com&#10;reviewapps.example.com"></textarea>
-        </label>
-        <div class="favicon-row">
-          <label><span data-i18n="favicon">Favicon</span>
-            <input class="rule-favicon" placeholder="icons/favicon-staging.png, https://…, or data:image/…" data-i18n-placeholder="faviconPlaceholder">
+
+          <label class="checkbox-field">
+            <input class="rule-keep-original" type="checkbox">
+            <span data-i18n="keepOriginalFavicon">
+              Keep the original favicon
+            </span>
           </label>
-          <label class="import-button small"><span data-i18n="chooseFile">Choose a file</span><input class="rule-favicon-file" type="file" accept="image/*,.png"></label>
-          <img class="favicon-preview" alt="Favicon preview" data-i18n-alt="faviconPreview">
+        </div>
+
+        <label>
+          <span data-i18n="urlPatterns">URL patterns, one per line</span>
+          <textarea
+            class="rule-patterns"
+            rows="3"
+            placeholder="staging.example.com&#10;reviewapps.example.com"
+          ></textarea>
+        </label>
+
+        <div class="favicon-row">
+          <label>
+            <span data-i18n="favicon">Favicon</span>
+            <input
+              class="rule-favicon"
+              placeholder="icons/favicon-staging.png, https://…, or data:image/…"
+              data-i18n-placeholder="faviconPlaceholder"
+            >
+          </label>
+
+          <label class="import-button small">
+            <span data-i18n="chooseFile">Choose a file</span>
+            <input
+              class="rule-favicon-file"
+              type="file"
+              accept="image/*,.png"
+            >
+          </label>
+
+          <img
+            class="favicon-preview"
+            alt="Favicon preview"
+            data-i18n-alt="faviconPreview"
+          >
         </div>
       </article>
     </template>
   </main>
+
   <div id="toast" class="toast" role="status"></div>
+
   <script src="src/i18n.js"></script>
   <script src="config/defaults.js"></script>
   <script src="src/shared.js"></script>
