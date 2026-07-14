@@ -56,5 +56,19 @@
   "configurationReset": {"message": "Configuration réinitialisée"},
   "configurationImported": {"message": "Configuration importée"},
   "invalidJson": {"message": "Import impossible : JSON invalide"},
-  "detectedEnvironment": {"message": "Détecté : $NAME$", "placeholders": {"name": {"content": "$1"}}}
+  "detectedEnvironment": {"message": "Détecté : $NAME$", "placeholders": {"name": {"content": "$1"}}},
+  "environmentGroups": {"message": "Groupes d’environnements"},
+  "allGroups": {"message": "Tous"},
+  "ungrouped": {"message": "Non classés"},
+  "group": {"message": "Groupe"},
+  "addGroup": {"message": "Ajouter un groupe"},
+  "renameGroup": {"message": "Renommer"},
+  "deleteGroup": {"message": "Supprimer"},
+  "newGroupName": {"message": "Nom du nouveau groupe"},
+  "renameGroupPrompt": {"message": "Renommer le groupe"},
+  "deleteGroupConfirm": {"message": "Supprimer le groupe « $NAME$ » ? Ses environnements seront déplacés dans « Non classés ».", "placeholders": {"name": {"content": "$1"}}},
+  "groupAdded": {"message": "Groupe ajouté"},
+  "groupRenamed": {"message": "Groupe renommé"},
+  "groupDeleted": {"message": "Groupe supprimé"},
+  "groupNameRequired": {"message": "Le nom du groupe est obligatoire"}
 }

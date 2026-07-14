@@ -56,5 +56,19 @@
   "configurationReset": {"message": "Configuration reset"},
   "configurationImported": {"message": "Configuration imported"},
   "invalidJson": {"message": "Import failed: invalid JSON"},
-  "detectedEnvironment": {"message": "Detected: $NAME$", "placeholders": {"name": {"content": "$1"}}}
+  "detectedEnvironment": {"message": "Detected: $NAME$", "placeholders": {"name": {"content": "$1"}}},
+  "environmentGroups": {"message": "Environment groups"},
+  "allGroups": {"message": "All"},
+  "ungrouped": {"message": "Ungrouped"},
+  "group": {"message": "Group"},
+  "addGroup": {"message": "Add group"},
+  "renameGroup": {"message": "Rename"},
+  "deleteGroup": {"message": "Delete"},
+  "newGroupName": {"message": "New group name"},
+  "renameGroupPrompt": {"message": "Rename the group"},
+  "deleteGroupConfirm": {"message": "Delete the group “$NAME$”? Its environments will become ungrouped.", "placeholders": {"name": {"content": "$1"}}},
+  "groupAdded": {"message": "Group added"},
+  "groupRenamed": {"message": "Group renamed"},
+  "groupDeleted": {"message": "Group deleted"},
+  "groupNameRequired": {"message": "A group name is required" }
 }

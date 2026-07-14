@@ -26,6 +26,14 @@
       <label class="setting-card"><input id="reapplyOnChanges" type="checkbox"> <span data-i18n="reapplyOnChanges">Reapply when the application changes the favicon</span></label>
       <label class="setting-card"><input id="debug" type="checkbox"> <span data-i18n="debugLogs">Debug logs in the console</span></label>
     </section>
+    <section class="groups-panel" aria-label="Environment groups" data-i18n-aria-label="environmentGroups">
+      <div id="groupTabs" class="group-tabs" role="tablist"></div>
+      <div class="group-actions">
+        <button id="addGroup" type="button" data-i18n="addGroup">Add group</button>
+        <button id="renameGroup" type="button" data-i18n="renameGroup">Rename</button>
+        <button id="deleteGroup" type="button" class="danger" data-i18n="deleteGroup">Delete</button>
+      </div>
+    </section>
     <section class="toolbar">
       <input id="search" type="search" placeholder="Filter environments…" data-i18n-placeholder="filterEnvironments">
       <button id="resetDefaults" type="button" class="danger" data-i18n="reset">Reset</button>
@@ -47,6 +55,9 @@
         <div class="form-grid">
           <label><span data-i18n="shortLabel">Short label</span><input class="rule-label" maxlength="12" placeholder="STAGING"></label>
           <label><span data-i18n="badgeColor">Badge color</span><input class="rule-color" type="color"></label>
+          <label><span data-i18n="group">Group</span>
+            <select class="rule-group"></select>
+          </label>
           <label><span data-i18n="matchType">Match type</span>
             <select class="rule-match-type">
               <option value="contains" data-i18n="urlContains">URL contains</option>

@@ -32,9 +32,18 @@ function callApi(fn, ...args) {
   });
 }
 
+function normalizeGroup(group) {
+  return {
+    id: group.id || makeId("group"),
+    name: String(group.name || "Group").trim() || "Group",
+    color: /^#[0-9a-f]{6}$/i.test(group.color || "") ? group.color : "#64748b"
+  };
+}
+
 function normalizeRule(rule) {
   return {
     id: rule.id || makeId(),
+    groupId: rule.groupId || null,
     enabled: rule.enabled !== false,
     name: rule.name || "New environment",
     label: rule.label || "ENV",
@@ -51,8 +60,14 @@ function normalizeSettings(settings) {
   const merged = {
     ...defaults,
     ...(settings || {}),
+    groups: Array.isArray(settings?.groups) ? settings.groups.map(normalizeGroup) : (defaults.groups || []).map(normalizeGroup),
     rules: Array.isArray(settings?.rules) ? settings.rules.map(normalizeRule) : defaults.rules.map(normalizeRule)
   };
+
+  const groupIds = new Set(merged.groups.map((group) => group.id));
+  merged.rules.forEach((rule) => {
+    if (rule.groupId && !groupIds.has(rule.groupId)) rule.groupId = null;
+  });
 
   merged.enabled = merged.enabled !== false;
   merged.titlePrefixEnabled = Boolean(merged.titlePrefixEnabled);
@@ -142,6 +157,7 @@ globalThis.EnvFavicon = {
   callApi,
   clone,
   makeId,
+  normalizeGroup,
   normalizeRule,
   normalizeSettings,
   getSettings,

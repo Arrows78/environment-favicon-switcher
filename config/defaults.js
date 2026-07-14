@@ -4,8 +4,13 @@ globalThis.DEFAULT_SETTINGS = {
   titlePrefixEnabled: false,
   reapplyOnChanges: true,
   debug: false,
+  groups: [
+    { id: "group-skello", name: "Skello", color: "#2563eb" },
+    { id: "group-raul", name: "Raul", color: "#8b5cf6" }
+  ],
   rules: [
     {
+      groupId: "group-skello",
       id: "skello-local",
       enabled: true,
       name: "Skello Local",
@@ -17,6 +22,7 @@ globalThis.DEFAULT_SETTINGS = {
       keepOriginalFavicon: false
     },
     {
+      groupId: "group-skello",
       id: "skello-review",
       enabled: true,
       name: "Skello Review App",
@@ -28,6 +34,7 @@ globalThis.DEFAULT_SETTINGS = {
       keepOriginalFavicon: false
     },
     {
+      groupId: "group-skello",
       id: "skello-sandbox",
       enabled: true,
       name: "Skello Sandbox",
@@ -39,6 +46,7 @@ globalThis.DEFAULT_SETTINGS = {
       keepOriginalFavicon: false
     },
     {
+      groupId: "group-skello",
       id: "skello-staging",
       enabled: true,
       name: "Skello Staging",
@@ -50,6 +58,7 @@ globalThis.DEFAULT_SETTINGS = {
       keepOriginalFavicon: false
     },
     {
+      groupId: "group-skello",
       id: "skello-production",
       enabled: true,
       name: "Skello Production",
@@ -61,6 +70,7 @@ globalThis.DEFAULT_SETTINGS = {
       keepOriginalFavicon: true
     },
     {
+      groupId: "group-raul",
       id: "raul-scratch-lightning",
       enabled: true,
       name: "Raul Scratch Lightning",
@@ -72,6 +82,7 @@ globalThis.DEFAULT_SETTINGS = {
       keepOriginalFavicon: false
     },
     {
+      groupId: "group-raul",
       id: "raul-uat",
       enabled: true,
       name: "Raul UAT",
@@ -83,6 +94,7 @@ globalThis.DEFAULT_SETTINGS = {
       keepOriginalFavicon: false
     },
     {
+      groupId: "group-raul",
       id: "raul-sandbox",
       enabled: true,
       name: "Raul Sandbox",
@@ -94,6 +106,7 @@ globalThis.DEFAULT_SETTINGS = {
       keepOriginalFavicon: false
     },
     {
+      groupId: "group-raul",
       id: "raul-production",
       enabled: true,
       name: "Raul Production",

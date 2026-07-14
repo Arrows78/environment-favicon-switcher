@@ -3,8 +3,11 @@ const $ = (selector, root = document) => root.querySelector(selector);
 const t = EnvI18n.t;
 EnvI18n.localizeDocument();
 
+const ALL_GROUPS = "__all__";
+const UNGROUPED = "__ungrouped__";
 let settings;
 let searchValue = "";
+let activeGroupId = ALL_GROUPS;
 
 function toast(message) {
   const node = $("#toast");
@@ -42,6 +45,68 @@ function readFileAsDataUrl(file) {
   });
 }
 
+function groupName(groupId) {
+  if (!groupId) return t("ungrouped");
+  return settings.groups.find((group) => group.id === groupId)?.name || t("ungrouped");
+}
+
+function ruleMatchesActiveGroup(rule) {
+  if (activeGroupId === ALL_GROUPS) return true;
+  if (activeGroupId === UNGROUPED) return !rule.groupId;
+  return rule.groupId === activeGroupId;
+}
+
+function renderGroupTabs() {
+  const tabs = $("#groupTabs");
+  tabs.innerHTML = "";
+  const definitions = [
+    { id: ALL_GROUPS, name: t("allGroups"), color: "#64748b" },
+    ...settings.groups,
+    { id: UNGROUPED, name: t("ungrouped"), color: "#94a3b8" }
+  ];
+
+  definitions.forEach((group) => {
+    const count = settings.rules.filter((rule) => {
+      if (group.id === ALL_GROUPS) return true;
+      if (group.id === UNGROUPED) return !rule.groupId;
+      return rule.groupId === group.id;
+    }).length;
+    if (group.id === UNGROUPED && count === 0) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "group-tab";
+    button.dataset.groupId = group.id;
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", String(activeGroupId === group.id));
+    button.classList.toggle("active", activeGroupId === group.id);
+    button.innerHTML = `<span class="group-tab-dot"></span><span></span><strong>${count}</strong>`;
+    $(".group-tab-dot", button).style.background = group.color;
+    button.children[1].textContent = group.name;
+    button.addEventListener("click", () => { activeGroupId = group.id; render(); });
+    tabs.appendChild(button);
+  });
+
+  const editable = ![ALL_GROUPS, UNGROUPED].includes(activeGroupId);
+  $("#renameGroup").disabled = !editable;
+  $("#deleteGroup").disabled = !editable;
+}
+
+function fillGroupSelect(select, selectedId) {
+  select.innerHTML = "";
+  const ungrouped = document.createElement("option");
+  ungrouped.value = "";
+  ungrouped.textContent = t("ungrouped");
+  select.appendChild(ungrouped);
+  settings.groups.forEach((group) => {
+    const option = document.createElement("option");
+    option.value = group.id;
+    option.textContent = group.name;
+    select.appendChild(option);
+  });
+  select.value = selectedId || "";
+}
+
 function renderRule(rule) {
   const template = $("#ruleTemplate");
   const card = template.content.firstElementChild.cloneNode(true);
@@ -52,6 +117,7 @@ function renderRule(rule) {
   $(".rule-enabled", card).checked = rule.enabled;
   $(".rule-label", card).value = rule.label;
   $(".rule-color", card).value = rule.color;
+  fillGroupSelect($(".rule-group", card), rule.groupId);
   $(".rule-match-type", card).value = rule.matchType;
   $(".rule-keep-original", card).checked = rule.keepOriginalFavicon;
   $(".rule-patterns", card).value = rule.patterns.join("\n");
@@ -63,6 +129,7 @@ function renderRule(rule) {
   bind(".rule-enabled", "change", (e) => { rule.enabled = e.target.checked; persist(); });
   bind(".rule-label", "change", (e) => { rule.label = e.target.value.trim().toUpperCase(); persist(); });
   bind(".rule-color", "change", (e) => { rule.color = e.target.value; persist(); });
+  bind(".rule-group", "change", (e) => { rule.groupId = e.target.value || null; persist(); });
   bind(".rule-match-type", "change", (e) => { rule.matchType = e.target.value; persist(); });
   bind(".rule-keep-original", "change", (e) => { rule.keepOriginalFavicon = e.target.checked; persist(); });
   bind(".rule-patterns", "change", (e) => { rule.patterns = linesToArray(e.target.value); persist(); });
@@ -93,11 +160,13 @@ function render() {
   $("#titlePrefixEnabled").checked = settings.titlePrefixEnabled;
   $("#reapplyOnChanges").checked = settings.reapplyOnChanges;
   $("#debug").checked = settings.debug;
+  renderGroupTabs();
 
   const container = $("#rulesContainer");
   container.innerHTML = "";
   const filteredRules = settings.rules.filter((rule) =>
-    `${rule.name} ${rule.label} ${rule.patterns.join(" ")}`.toLowerCase().includes(searchValue)
+    ruleMatchesActiveGroup(rule) &&
+    `${rule.name} ${rule.label} ${groupName(rule.groupId)} ${rule.patterns.join(" ")}`.toLowerCase().includes(searchValue)
   );
 
   if (!filteredRules.length) {
@@ -116,9 +185,37 @@ $("#titlePrefixEnabled").addEventListener("change", (e) => updateGlobalSetting("
 $("#reapplyOnChanges").addEventListener("change", (e) => updateGlobalSetting("reapplyOnChanges", e.target.checked));
 $("#debug").addEventListener("change", (e) => updateGlobalSetting("debug", e.target.checked));
 $("#search").addEventListener("input", (e) => { searchValue = e.target.value.trim().toLowerCase(); render(); });
+$("#addGroup").addEventListener("click", async () => {
+  const name = prompt(t("newGroupName"));
+  if (name === null) return;
+  if (!name.trim()) return toast(t("groupNameRequired"));
+  const group = EnvFavicon.normalizeGroup({ id: EnvFavicon.makeId("group"), name: name.trim(), color: "#64748b" });
+  settings.groups.push(group);
+  activeGroupId = group.id;
+  await persist(t("groupAdded"));
+});
+$("#renameGroup").addEventListener("click", async () => {
+  const group = settings.groups.find((candidate) => candidate.id === activeGroupId);
+  if (!group) return;
+  const name = prompt(t("renameGroupPrompt"), group.name);
+  if (name === null) return;
+  if (!name.trim()) return toast(t("groupNameRequired"));
+  group.name = name.trim();
+  await persist(t("groupRenamed"));
+});
+$("#deleteGroup").addEventListener("click", async () => {
+  const group = settings.groups.find((candidate) => candidate.id === activeGroupId);
+  if (!group || !confirm(t("deleteGroupConfirm", group.name))) return;
+  settings.groups = settings.groups.filter((candidate) => candidate.id !== group.id);
+  settings.rules.forEach((rule) => { if (rule.groupId === group.id) rule.groupId = null; });
+  activeGroupId = ALL_GROUPS;
+  await persist(t("groupDeleted"));
+});
 $("#addRule").addEventListener("click", async () => {
+  const groupId = ![ALL_GROUPS, UNGROUPED].includes(activeGroupId) ? activeGroupId : null;
   settings.rules.unshift(EnvFavicon.normalizeRule({
     id: EnvFavicon.makeId("rule"),
+    groupId,
     name: t("newEnvironment"),
     label: "ENV",
     color: "#64748b",
@@ -131,6 +228,7 @@ $("#addRule").addEventListener("click", async () => {
 $("#resetDefaults").addEventListener("click", async () => {
   if (!confirm(t("resetConfirm"))) return;
   settings = EnvFavicon.normalizeSettings(DEFAULT_SETTINGS);
+  activeGroupId = ALL_GROUPS;
   await persist(t("configurationReset"));
 });
 $("#exportConfig").addEventListener("click", () => {
@@ -148,6 +246,7 @@ $("#importConfig").addEventListener("change", async (e) => {
   try {
     const imported = JSON.parse(await file.text());
     settings = EnvFavicon.normalizeSettings(imported);
+    activeGroupId = ALL_GROUPS;
     await persist(t("configurationImported"));
   } catch (_) {
     toast(t("invalidJson"));
