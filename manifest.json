@@ -1,0 +1,63 @@
+{
+  "manifest_version": 3,
+  "name": "Environment Favicon Switcher",
+  "short_name": "Env Favicon",
+  "description": "Change favicons automatically depending on your work environments: local, review apps, sandbox, staging, production, and custom URLs.",
+  "version": "2.0.0",
+  "author": "Thomas Jost",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Environment Favicon Switcher",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "background": {
+    "scripts": [
+      "config/defaults.js",
+      "src/shared.js",
+      "src/background.js"
+    ],
+    "service_worker": "src/service-worker.js"
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "config/defaults.js",
+        "src/shared.js",
+        "src/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{3fda7578-a517-4335-8ec4-cad2a55b1979}",
+      "strict_min_version": "109.0"
+    }
+  }
+}
