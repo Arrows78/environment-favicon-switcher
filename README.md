@@ -149,7 +149,7 @@ You can configure favicons using three different formats.
 ### Local Extension Path
 
 ```text
-icons/favicon-staging.ico
+icons/favicon-staging.png
 ```
 
 This is the recommended option for stable configurations shared across a team.
@@ -158,7 +158,7 @@ The referenced file must be included in the extension package.
 ### Remote URL
 
 ```text
-https://example.com/favicon-staging.ico
+https://example.com/favicon-staging.png
 ```
 
 Remote favicons are supported, but they depend on the URL remaining publicly accessible.
