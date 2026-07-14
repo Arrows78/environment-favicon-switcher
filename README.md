@@ -28,6 +28,21 @@ The goal is simple: prevent context-related mistakes. When multiple tabs look al
 - Supports JSON configuration import and export.
 - Includes default configurations for MyApp that can be customized by each user.
 
+## Localization
+
+English is the default locale, configured through `default_locale` in `manifest.json`.
+Translations are stored in:
+
+```text
+_locales/
+├── en/messages.json
+└── fr/messages.json
+```
+
+Chrome and Firefox automatically select the locale from the browser UI language. Unsupported languages fall back to English.
+
+To add another language, create `_locales/<locale>/messages.json` and provide the same message keys as the English file.
+
 ## Project Structure
 
 ```text

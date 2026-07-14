@@ -13,7 +13,7 @@ extensionApi.runtime.onMessage.addListener((message, sender) => {
   const rule = message.rule;
   if (!rule) {
     extensionApi.action.setBadgeText({ tabId, text: "" });
-    extensionApi.action.setTitle({ tabId, title: "Environment Favicon Switcher" });
+    extensionApi.action.setTitle({ tabId, title: extensionApi.i18n.getMessage("extensionName") || "Environment Favicon Switcher" });
     return;
   }
 
@@ -25,5 +25,5 @@ extensionApi.runtime.onMessage.addListener((message, sender) => {
     tabId,
     color: rule.color || "#64748b"
   });
-  extensionApi.action.setTitle({ tabId, title: `Detected: ${rule.name}` });
+  extensionApi.action.setTitle({ tabId, title: extensionApi.i18n.getMessage("detectedEnvironment", rule.name) || `Detected: ${rule.name}` });
 });

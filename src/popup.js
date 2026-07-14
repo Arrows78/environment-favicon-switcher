@@ -1,5 +1,7 @@
-/* global EnvFavicon */
+/* global EnvFavicon, EnvI18n */
 const $ = (selector) => document.querySelector(selector);
+const t = EnvI18n.t;
+EnvI18n.localizeDocument();
 
 async function getActiveTab() {
   const tabs = await EnvFavicon.callApi(EnvFavicon.api.tabs.query.bind(EnvFavicon.api.tabs), { active: true, currentWindow: true });
@@ -18,27 +20,27 @@ function renderRules(settings) {
 
 function renderStatus(rule, tabUrl, enabled) {
   const status = $("#status");
-  
   try {
-    $("#currentUrl").textContent = tabUrl ? (new URL(tabUrl).hostname || tabUrl) : "Onglet actif";
+    $("#currentUrl").textContent = tabUrl ? (new URL(tabUrl).hostname || tabUrl) : t("activeTab");
   } catch (_) {
-    $("#currentUrl").textContent = tabUrl || "Onglet actif";
+    $("#currentUrl").textContent = tabUrl || t("activeTab");
   }
 
   if (!enabled) {
     status.className = "status-card warning";
-    status.textContent = "Extension désactivée globalement.";
+    status.textContent = t("globallyDisabled");
     return;
   }
 
   if (!rule) {
     status.className = "status-card muted";
-    status.textContent = "Aucun environnement configuré ne correspond à cet onglet.";
+    status.textContent = t("noMatchingEnvironment");
     return;
   }
 
   status.className = "status-card";
-  status.innerHTML = `<div class="status-title"><span class="dot" style="background:${rule.color}"></span>${rule.name}</div><p>Label : ${rule.label || "—"} · ${rule.keepOriginalFavicon ? "favicon original conservé" : "favicon remplacé"}</p>`;
+  const faviconStatus = rule.keepOriginalFavicon ? t("originalFaviconKept") : t("faviconReplaced");
+  status.innerHTML = `<div class="status-title"><span class="dot" style="background:${rule.color}"></span>${rule.name}</div><p>${t("label")}: ${rule.label || "—"} · ${faviconStatus}</p>`;
 }
 
 async function refresh() {

@@ -1,6 +1,7 @@
-/* global EnvFavicon, DEFAULT_SETTINGS */
+/* global EnvFavicon, EnvI18n, DEFAULT_SETTINGS */
 const $ = (selector, root = document) => root.querySelector(selector);
-const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+const t = EnvI18n.t;
+EnvI18n.localizeDocument();
 
 let settings;
 let searchValue = "";
@@ -16,7 +17,7 @@ function linesToArray(value) {
   return value.split("\n").map((line) => line.trim()).filter(Boolean);
 }
 
-async function persist(message = "Configuration enregistrée") {
+async function persist(message = t("configurationSaved")) {
   settings = await EnvFavicon.saveSettings(settings);
   render();
   toast(message);
@@ -44,6 +45,7 @@ function readFileAsDataUrl(file) {
 function renderRule(rule) {
   const template = $("#ruleTemplate");
   const card = template.content.firstElementChild.cloneNode(true);
+  EnvI18n.localizeDocument(card);
   card.dataset.id = rule.id;
   $(".dot", card).style.background = rule.color;
   $(".rule-name", card).value = rule.name;
@@ -57,7 +59,7 @@ function renderRule(rule) {
   $(".favicon-preview", card).src = faviconPreviewUrl(rule);
 
   const bind = (selector, event, handler) => $(selector, card).addEventListener(event, handler);
-  bind(".rule-name", "change", (e) => { rule.name = e.target.value.trim() || "Untitled"; persist(); });
+  bind(".rule-name", "change", (e) => { rule.name = e.target.value.trim() || t("untitled"); persist(); });
   bind(".rule-enabled", "change", (e) => { rule.enabled = e.target.checked; persist(); });
   bind(".rule-label", "change", (e) => { rule.label = e.target.value.trim().toUpperCase(); persist(); });
   bind(".rule-color", "change", (e) => { rule.color = e.target.value; persist(); });
@@ -70,17 +72,17 @@ function renderRule(rule) {
     if (!file) return;
     rule.favicon = await readFileAsDataUrl(file);
     rule.keepOriginalFavicon = false;
-    await persist("Favicon importé");
+    await persist(t("faviconImported"));
   });
   bind(".duplicate-rule", "click", async () => {
-    const copy = EnvFavicon.normalizeRule({ ...rule, id: EnvFavicon.makeId("rule"), name: `${rule.name} copy` });
+    const copy = EnvFavicon.normalizeRule({ ...rule, id: EnvFavicon.makeId("rule"), name: `${rule.name} ${t("copySuffix")}` });
     settings.rules.splice(settings.rules.indexOf(rule) + 1, 0, copy);
-    await persist("Environnement dupliqué");
+    await persist(t("environmentDuplicated"));
   });
   bind(".remove-rule", "click", async () => {
-    if (!confirm(`Supprimer « ${rule.name} » ?`)) return;
+    if (!confirm(t("removeEnvironmentConfirm", rule.name))) return;
     settings.rules = settings.rules.filter((candidate) => candidate.id !== rule.id);
-    await persist("Environnement supprimé");
+    await persist(t("environmentRemoved"));
   });
 
   return card;
@@ -99,7 +101,10 @@ function render() {
   );
 
   if (!filteredRules.length) {
-    container.innerHTML = '<p class="empty-state">Aucun environnement ne correspond au filtre.</p>';
+    const emptyState = document.createElement("p");
+    emptyState.className = "empty-state";
+    emptyState.textContent = t("noFilterMatches");
+    container.appendChild(emptyState);
     return;
   }
 
@@ -114,19 +119,19 @@ $("#search").addEventListener("input", (e) => { searchValue = e.target.value.tri
 $("#addRule").addEventListener("click", async () => {
   settings.rules.unshift(EnvFavicon.normalizeRule({
     id: EnvFavicon.makeId("rule"),
-    name: "Nouvel environnement",
+    name: t("newEnvironment"),
     label: "ENV",
     color: "#64748b",
     matchType: "hostname",
     patterns: ["example.local"],
     favicon: "icons/icon-48.png"
   }));
-  await persist("Environnement ajouté");
+  await persist(t("environmentAdded"));
 });
 $("#resetDefaults").addEventListener("click", async () => {
-  if (!confirm("Réinitialiser toute la configuration avec les valeurs par défaut ?")) return;
+  if (!confirm(t("resetConfirm"))) return;
   settings = EnvFavicon.normalizeSettings(DEFAULT_SETTINGS);
-  await persist("Configuration réinitialisée");
+  await persist(t("configurationReset"));
 });
 $("#exportConfig").addEventListener("click", () => {
   const blob = new Blob([JSON.stringify(settings, null, 2)], { type: "application/json" });
@@ -143,9 +148,9 @@ $("#importConfig").addEventListener("change", async (e) => {
   try {
     const imported = JSON.parse(await file.text());
     settings = EnvFavicon.normalizeSettings(imported);
-    await persist("Configuration importée");
+    await persist(t("configurationImported"));
   } catch (_) {
-    toast("Import impossible : JSON invalide");
+    toast(t("invalidJson"));
   }
 });
 
