@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Environment Favicon Switcher</title>
+  <link rel="stylesheet" href="styles/app.css">
+</head>
+<body class="popup-body">
+  <main class="popup">
+    <header class="popup-header">
+      <img src="icons/icon-48.png" alt="" width="32" height="32">
+      <div>
+        <h1>Env Favicon</h1>
+        <p id="currentUrl">Chargement…</p>
+      </div>
+    </header>
+
+    <section id="status" class="status-card muted">Analyse de l’onglet actif…</section>
+
+    <label class="switch-row">
+      <span>Extension active</span>
+      <input id="enabledToggle" type="checkbox">
+    </label>
+
+    <div class="actions">
+      <button id="reapplyButton" type="button">Réappliquer</button>
+      <button id="optionsButton" type="button" class="primary">Configurer</button>
+    </div>
+
+    <details>
+      <summary>Environnements actifs</summary>
+      <ul id="rulesList" class="rules-list"></ul>
+    </details>
+  </main>
+  <script src="config/defaults.js"></script>
+  <script src="src/shared.js"></script>
+  <script src="src/popup.js"></script>
+</body>
+</html>
