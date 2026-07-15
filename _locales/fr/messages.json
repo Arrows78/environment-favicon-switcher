@@ -1,74 +1,420 @@
 {
-  "extensionName": {"message": "Environment Favicon Switcher"},
-  "extensionShortName": {"message": "Env Favicon"},
-  "extensionDescription": {"message": "Change automatiquement les favicons selon l’environnement de travail : local, review apps, sandbox, staging, production et URL personnalisées."},
-  "loading": {"message": "Chargement…"},
-  "analyzingActiveTab": {"message": "Analyse de l’onglet actif…"},
-  "extensionEnabled": {"message": "Extension active"},
-  "reapply": {"message": "Réappliquer"},
-  "configure": {"message": "Configurer"},
-  "activeEnvironments": {"message": "Environnements actifs"},
-  "optionsTitle": {"message": "Configurer Environment Favicon Switcher"},
-  "browserExtension": {"message": "Extension navigateur"},
-  "optionsIntro": {"message": "Personnalisez les favicons par environnement, domaine ou expression régulière. Chaque utilisateur peut définir ses propres règles."},
-  "addEnvironment": {"message": "Ajouter un environnement"},
-  "export": {"message": "Exporter"},
-  "import": {"message": "Importer"},
-  "enableExtension": {"message": "Activer l’extension"},
-  "titlePrefix": {"message": "Ajouter un préfixe au titre de l’onglet"},
-  "reapplyOnChanges": {"message": "Réappliquer si l’application modifie le favicon"},
-  "debugLogs": {"message": "Logs de debug dans la console"},
-  "filterEnvironments": {"message": "Filtrer les environnements…"},
-  "reset": {"message": "Réinitialiser"},
-  "environmentName": {"message": "Nom de l’environnement"},
-  "active": {"message": "Actif"},
-  "duplicate": {"message": "Dupliquer"},
-  "remove": {"message": "Supprimer"},
-  "shortLabel": {"message": "Label court"},
-  "badgeColor": {"message": "Couleur du badge"},
-  "matchType": {"message": "Type de correspondance"},
-  "urlContains": {"message": "L’URL contient"},
-  "hostname": {"message": "Domaine / sous-domaine"},
-  "regularExpression": {"message": "Expression régulière"},
-  "keepOriginalFavicon": {"message": "Garder le favicon original"},
-  "urlPatterns": {"message": "Patterns d’URL, un par ligne"},
-  "favicon": {"message": "Favicon"},
-  "faviconPlaceholder": {"message": "icons/favicon-staging.ico, https://…, ou data:image/…"},
-  "chooseFile": {"message": "Choisir un fichier"},
-  "faviconPreview": {"message": "Aperçu du favicon"},
-  "activeTab": {"message": "Onglet actif"},
-  "globallyDisabled": {"message": "L’extension est désactivée globalement."},
-  "noMatchingEnvironment": {"message": "Aucun environnement configuré ne correspond à cet onglet."},
-  "label": {"message": "Label"},
-  "originalFaviconKept": {"message": "favicon original conservé"},
-  "faviconReplaced": {"message": "favicon remplacé"},
-  "configurationSaved": {"message": "Configuration enregistrée"},
-  "untitled": {"message": "Sans titre"},
-  "faviconImported": {"message": "Favicon importé"},
-  "copySuffix": {"message": "copie"},
-  "environmentDuplicated": {"message": "Environnement dupliqué"},
-  "removeEnvironmentConfirm": {"message": "Supprimer « $NAME$ » ?", "placeholders": {"name": {"content": "$1"}}},
-  "environmentRemoved": {"message": "Environnement supprimé"},
-  "noFilterMatches": {"message": "Aucun environnement ne correspond au filtre."},
-  "newEnvironment": {"message": "Nouvel environnement"},
-  "environmentAdded": {"message": "Environnement ajouté"},
-  "resetConfirm": {"message": "Réinitialiser toute la configuration avec les valeurs par défaut ?"},
-  "configurationReset": {"message": "Configuration réinitialisée"},
-  "configurationImported": {"message": "Configuration importée"},
-  "invalidJson": {"message": "Import impossible : JSON invalide"},
-  "detectedEnvironment": {"message": "Détecté : $NAME$", "placeholders": {"name": {"content": "$1"}}},
-  "environmentGroups": {"message": "Groupes d’environnements"},
-  "allGroups": {"message": "Tous"},
-  "ungrouped": {"message": "Non classés"},
-  "group": {"message": "Groupe"},
-  "addGroup": {"message": "Ajouter un groupe"},
-  "renameGroup": {"message": "Renommer"},
-  "deleteGroup": {"message": "Supprimer"},
-  "newGroupName": {"message": "Nom du nouveau groupe"},
-  "renameGroupPrompt": {"message": "Renommer le groupe"},
-  "deleteGroupConfirm": {"message": "Supprimer le groupe « $NAME$ » ? Ses environnements seront déplacés dans « Non classés ».", "placeholders": {"name": {"content": "$1"}}},
-  "groupAdded": {"message": "Groupe ajouté"},
-  "groupRenamed": {"message": "Groupe renommé"},
-  "groupDeleted": {"message": "Groupe supprimé"},
-  "groupNameRequired": {"message": "Le nom du groupe est obligatoire"}
+  "extensionName": {
+    "message": "Environment Favicon Switcher"
+  },
+  "extensionShortName": {
+    "message": "Env Favicon"
+  },
+  "extensionDescription": {
+    "message": "Adapte les favicons, les badges et les titres d'onglet selon l'environnement courant."
+  },
+  "detectedEnvironment": {
+    "message": "Environnement détecté : $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "browserExtension": {
+    "message": "Extension de navigateur"
+  },
+  "optionsIntro": {
+    "message": "Personnalisez les favicons par environnement avec des priorités explicites, des exclusions et un diagnostic détaillé."
+  },
+  "addEnvironment": {
+    "message": "Ajouter un environnement"
+  },
+  "export": {
+    "message": "Exporter"
+  },
+  "import": {
+    "message": "Importer"
+  },
+  "mergeImportedConfig": {
+    "message": "Fusionner la configuration importée"
+  },
+  "globalSettings": {
+    "message": "Paramètres globaux"
+  },
+  "enableExtension": {
+    "message": "Activer l'extension"
+  },
+  "titlePrefix": {
+    "message": "Ajouter un préfixe au titre de l'onglet"
+  },
+  "reapplyOnChanges": {
+    "message": "Réappliquer si l'application modifie la favicon"
+  },
+  "debugLogs": {
+    "message": "Afficher les journaux de débogage dans la console"
+  },
+  "diagnostics": {
+    "message": "Diagnostic"
+  },
+  "ruleTester": {
+    "message": "Tester une URL"
+  },
+  "ruleTesterDescription": {
+    "message": "Identifiez la règle gagnante, son motif de correspondance et les conflits éventuels."
+  },
+  "testUrl": {
+    "message": "URL à tester"
+  },
+  "testUrlPlaceholder": {
+    "message": "https://staging.example.com/dashboard"
+  },
+  "useActiveTab": {
+    "message": "Utiliser l'onglet actif"
+  },
+  "testNow": {
+    "message": "Tester"
+  },
+  "noUrlTested": {
+    "message": "Saisissez une URL ou utilisez l'onglet actif pour inspecter les règles."
+  },
+  "invalidUrl": {
+    "message": "Saisissez une URL complète, protocole inclus."
+  },
+  "winner": {
+    "message": "Gagnante"
+  },
+  "winnerSummary": {
+    "message": "Règle gagnante : $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "conflictDetected": {
+    "message": "Plusieurs règles correspondent"
+  },
+  "matchedRules": {
+    "message": "Règles correspondantes"
+  },
+  "excludedRules": {
+    "message": "Exclues après correspondance"
+  },
+  "patternErrors": {
+    "message": "Erreurs de motif"
+  },
+  "priorityValue": {
+    "message": "Priorité $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "matchedBy": {
+    "message": "Correspondance : $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "excludedBy": {
+    "message": "Exclue par : $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "environmentGroups": {
+    "message": "Groupes d'environnements"
+  },
+  "addGroup": {
+    "message": "Ajouter un groupe"
+  },
+  "renameGroup": {
+    "message": "Renommer"
+  },
+  "deleteGroup": {
+    "message": "Supprimer"
+  },
+  "filterEnvironments": {
+    "message": "Filtrer les environnements..."
+  },
+  "reset": {
+    "message": "Réinitialiser"
+  },
+  "environmentName": {
+    "message": "Nom de l'environnement"
+  },
+  "ruleOrder": {
+    "message": "Ordre des règles"
+  },
+  "moveUp": {
+    "message": "Monter"
+  },
+  "moveDown": {
+    "message": "Descendre"
+  },
+  "active": {
+    "message": "Active"
+  },
+  "duplicate": {
+    "message": "Dupliquer"
+  },
+  "remove": {
+    "message": "Supprimer"
+  },
+  "shortLabel": {
+    "message": "Libellé court"
+  },
+  "badgeColor": {
+    "message": "Couleur du badge"
+  },
+  "priority": {
+    "message": "Priorité"
+  },
+  "group": {
+    "message": "Groupe"
+  },
+  "matchType": {
+    "message": "Type de correspondance"
+  },
+  "urlContains": {
+    "message": "L'URL contient"
+  },
+  "hostname": {
+    "message": "Domaine / sous-domaine"
+  },
+  "urlGlob": {
+    "message": "Motif glob d'URL (* et ?)"
+  },
+  "regularExpression": {
+    "message": "Expression régulière"
+  },
+  "priorityHint": {
+    "message": "La priorité la plus élevée gagne. L'ordre affiché départage les égalités."
+  },
+  "urlPatterns": {
+    "message": "Motifs d'URL, un par ligne"
+  },
+  "exclusionPatterns": {
+    "message": "Motifs d'exclusion, un par ligne"
+  },
+  "exclusionPatternsPlaceholder": {
+    "message": "staging.example.com/health"
+  },
+  "favicon": {
+    "message": "Favicon"
+  },
+  "faviconPlaceholder": {
+    "message": "icons/favicon-staging.ico, https://..., ou data:image/..."
+  },
+  "chooseFile": {
+    "message": "Choisir un fichier"
+  },
+  "generateFavicon": {
+    "message": "Générer"
+  },
+  "faviconPreview": {
+    "message": "Aperçu de la favicon"
+  },
+  "keepOriginalFavicon": {
+    "message": "Conserver la favicon d'origine"
+  },
+  "loading": {
+    "message": "Chargement..."
+  },
+  "analyzingActiveTab": {
+    "message": "Analyse de l'onglet actif..."
+  },
+  "extensionEnabled": {
+    "message": "Extension activée"
+  },
+  "reapply": {
+    "message": "Réappliquer"
+  },
+  "configure": {
+    "message": "Configurer"
+  },
+  "activeEnvironments": {
+    "message": "Environnements actifs"
+  },
+  "configurationSaved": {
+    "message": "Configuration enregistrée"
+  },
+  "saveFailed": {
+    "message": "La configuration n'a pas pu être enregistrée."
+  },
+  "loadFailed": {
+    "message": "La configuration enregistrée n'a pas pu être chargée ; les valeurs par défaut sont affichées."
+  },
+  "configurationImported": {
+    "message": "Configuration importée"
+  },
+  "configurationExported": {
+    "message": "Configuration exportée"
+  },
+  "configurationReset": {
+    "message": "Configuration réinitialisée"
+  },
+  "configurationValid": {
+    "message": "Configuration valide"
+  },
+  "configurationIssueCount": {
+    "message": "$COUNT$ problème(s) de validation",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "copySuffix": {
+    "message": "copie"
+  },
+  "deleteGroupConfirm": {
+    "message": "Supprimer le groupe \"$NAME$\" ?",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "environmentAdded": {
+    "message": "Environnement ajouté"
+  },
+  "environmentDuplicated": {
+    "message": "Environnement dupliqué"
+  },
+  "environmentRemoved": {
+    "message": "Environnement supprimé"
+  },
+  "ruleMoved": {
+    "message": "Ordre des règles mis à jour"
+  },
+  "faviconImported": {
+    "message": "Favicon importée"
+  },
+  "faviconGenerated": {
+    "message": "Favicon générée"
+  },
+  "faviconImportFailed": {
+    "message": "La favicon n'a pas pu être importée."
+  },
+  "faviconTooLarge": {
+    "message": "La favicon doit peser moins de 128 Ko."
+  },
+  "faviconInvalidType": {
+    "message": "Choisissez un fichier image valide."
+  },
+  "faviconReplaced": {
+    "message": "favicon remplacée"
+  },
+  "globallyDisabled": {
+    "message": "L'extension est désactivée."
+  },
+  "groupAdded": {
+    "message": "Groupe ajouté"
+  },
+  "groupDeleted": {
+    "message": "Groupe supprimé"
+  },
+  "groupNameRequired": {
+    "message": "Le nom du groupe est obligatoire."
+  },
+  "groupRenamed": {
+    "message": "Groupe renommé"
+  },
+  "invalidJson": {
+    "message": "La configuration JSON importée est invalide."
+  },
+  "importTooLarge": {
+    "message": "Le fichier de configuration doit peser moins de 2 Mo."
+  },
+  "label": {
+    "message": "Libellé"
+  },
+  "newEnvironment": {
+    "message": "Nouvel environnement"
+  },
+  "newGroupName": {
+    "message": "Nom du nouveau groupe"
+  },
+  "noFilterMatches": {
+    "message": "Aucun environnement ne correspond à ce filtre."
+  },
+  "noMatchingEnvironment": {
+    "message": "Aucun environnement correspondant."
+  },
+  "originalFaviconKept": {
+    "message": "favicon d'origine conservée"
+  },
+  "removeEnvironmentConfirm": {
+    "message": "Supprimer \"$NAME$\" ?",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "renameGroupPrompt": {
+    "message": "Renommer le groupe"
+  },
+  "resetConfirm": {
+    "message": "Réinitialiser toute la configuration ?"
+  },
+  "ungrouped": {
+    "message": "Sans groupe"
+  },
+  "allGroups": {
+    "message": "Tous les groupes"
+  },
+  "untitled": {
+    "message": "Sans titre"
+  },
+  "activeTab": {
+    "message": "Onglet actif"
+  },
+  "activeTabUnavailable": {
+    "message": "L'URL de l'onglet actif n'est pas disponible."
+  },
+  "ruleValid": {
+    "message": "Règle valide"
+  },
+  "validationIssues": {
+    "message": "Problèmes de validation"
+  },
+  "issueMissingPatterns": {
+    "message": "Ajoutez au moins un motif d'inclusion."
+  },
+  "issueInvalidPattern": {
+    "message": "Motif invalide : $PATTERN$",
+    "placeholders": {
+      "pattern": {
+        "content": "$1"
+      }
+    }
+  },
+  "issueRegexTooLong": {
+    "message": "Expression régulière trop longue : $PATTERN$",
+    "placeholders": {
+      "pattern": {
+        "content": "$1"
+      }
+    }
+  },
+  "issueMissingFavicon": {
+    "message": "Choisissez ou générez une favicon, ou conservez l'originale."
+  },
+  "issueInvalidUrl": {
+    "message": "L'URL testée est invalide."
+  },
+  "issueUnknown": {
+    "message": "Problème de validation inconnu."
+  },
+  "matchedRuleCount": {
+    "message": "$COUNT$ règle(s) correspondante(s)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  }
 }

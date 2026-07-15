@@ -1,74 +1,420 @@
 {
-  "extensionName": {"message": "Environment Favicon Switcher"},
-  "extensionShortName": {"message": "Env Favicon"},
-  "extensionDescription": {"message": "Automatically change favicons based on your work environment: local, review apps, sandbox, staging, production, and custom URLs."},
-  "loading": {"message": "Loading…"},
-  "analyzingActiveTab": {"message": "Analyzing the active tab…"},
-  "extensionEnabled": {"message": "Extension enabled"},
-  "reapply": {"message": "Reapply"},
-  "configure": {"message": "Configure"},
-  "activeEnvironments": {"message": "Active environments"},
-  "optionsTitle": {"message": "Configure Environment Favicon Switcher"},
-  "browserExtension": {"message": "Browser extension"},
-  "optionsIntro": {"message": "Customize favicons by environment, domain, or regular expression. Each user can define their own rules."},
-  "addEnvironment": {"message": "Add environment"},
-  "export": {"message": "Export"},
-  "import": {"message": "Import"},
-  "enableExtension": {"message": "Enable the extension"},
-  "titlePrefix": {"message": "Add a prefix to the tab title"},
-  "reapplyOnChanges": {"message": "Reapply when the application changes the favicon"},
-  "debugLogs": {"message": "Debug logs in the console"},
-  "filterEnvironments": {"message": "Filter environments…"},
-  "reset": {"message": "Reset"},
-  "environmentName": {"message": "Environment name"},
-  "active": {"message": "Active"},
-  "duplicate": {"message": "Duplicate"},
-  "remove": {"message": "Remove"},
-  "shortLabel": {"message": "Short label"},
-  "badgeColor": {"message": "Badge color"},
-  "matchType": {"message": "Match type"},
-  "urlContains": {"message": "URL contains"},
-  "hostname": {"message": "Domain / subdomain"},
-  "regularExpression": {"message": "Regular expression"},
-  "keepOriginalFavicon": {"message": "Keep the original favicon"},
-  "urlPatterns": {"message": "URL patterns, one per line"},
-  "favicon": {"message": "Favicon"},
-  "faviconPlaceholder": {"message": "icons/favicon-staging.ico, https://…, or data:image/…"},
-  "chooseFile": {"message": "Choose a file"},
-  "faviconPreview": {"message": "Favicon preview"},
-  "activeTab": {"message": "Active tab"},
-  "globallyDisabled": {"message": "The extension is globally disabled."},
-  "noMatchingEnvironment": {"message": "No configured environment matches this tab."},
-  "label": {"message": "Label"},
-  "originalFaviconKept": {"message": "original favicon kept"},
-  "faviconReplaced": {"message": "favicon replaced"},
-  "configurationSaved": {"message": "Configuration saved"},
-  "untitled": {"message": "Untitled"},
-  "faviconImported": {"message": "Favicon imported"},
-  "copySuffix": {"message": "copy"},
-  "environmentDuplicated": {"message": "Environment duplicated"},
-  "removeEnvironmentConfirm": {"message": "Remove “$NAME$”?", "placeholders": {"name": {"content": "$1"}}},
-  "environmentRemoved": {"message": "Environment removed"},
-  "noFilterMatches": {"message": "No environment matches the filter."},
-  "newEnvironment": {"message": "New environment"},
-  "environmentAdded": {"message": "Environment added"},
-  "resetConfirm": {"message": "Reset the entire configuration to its default values?"},
-  "configurationReset": {"message": "Configuration reset"},
-  "configurationImported": {"message": "Configuration imported"},
-  "invalidJson": {"message": "Import failed: invalid JSON"},
-  "detectedEnvironment": {"message": "Detected: $NAME$", "placeholders": {"name": {"content": "$1"}}},
-  "environmentGroups": {"message": "Environment groups"},
-  "allGroups": {"message": "All"},
-  "ungrouped": {"message": "Ungrouped"},
-  "group": {"message": "Group"},
-  "addGroup": {"message": "Add group"},
-  "renameGroup": {"message": "Rename"},
-  "deleteGroup": {"message": "Delete"},
-  "newGroupName": {"message": "New group name"},
-  "renameGroupPrompt": {"message": "Rename the group"},
-  "deleteGroupConfirm": {"message": "Delete the group “$NAME$”? Its environments will become ungrouped.", "placeholders": {"name": {"content": "$1"}}},
-  "groupAdded": {"message": "Group added"},
-  "groupRenamed": {"message": "Group renamed"},
-  "groupDeleted": {"message": "Group deleted"},
-  "groupNameRequired": {"message": "A group name is required" }
+  "extensionName": {
+    "message": "Environment Favicon Switcher"
+  },
+  "extensionShortName": {
+    "message": "Env Favicon"
+  },
+  "extensionDescription": {
+    "message": "Switch favicons, badges, and tab titles according to the current environment."
+  },
+  "detectedEnvironment": {
+    "message": "Detected environment: $NAME$",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "browserExtension": {
+    "message": "Browser extension"
+  },
+  "optionsIntro": {
+    "message": "Customize favicons by environment with explicit priorities, exclusions, and diagnostics."
+  },
+  "addEnvironment": {
+    "message": "Add environment"
+  },
+  "export": {
+    "message": "Export"
+  },
+  "import": {
+    "message": "Import"
+  },
+  "mergeImportedConfig": {
+    "message": "Merge imported configuration"
+  },
+  "globalSettings": {
+    "message": "Global settings"
+  },
+  "enableExtension": {
+    "message": "Enable the extension"
+  },
+  "titlePrefix": {
+    "message": "Add a prefix to the tab title"
+  },
+  "reapplyOnChanges": {
+    "message": "Reapply when the application changes the favicon"
+  },
+  "debugLogs": {
+    "message": "Debug logs in the console"
+  },
+  "diagnostics": {
+    "message": "Diagnostics"
+  },
+  "ruleTester": {
+    "message": "Test a URL"
+  },
+  "ruleTesterDescription": {
+    "message": "See which rule wins, why it matches, and whether another rule conflicts."
+  },
+  "testUrl": {
+    "message": "URL to test"
+  },
+  "testUrlPlaceholder": {
+    "message": "https://staging.example.com/dashboard"
+  },
+  "useActiveTab": {
+    "message": "Use active tab"
+  },
+  "testNow": {
+    "message": "Test"
+  },
+  "noUrlTested": {
+    "message": "Enter a URL or use the active tab to inspect rule matching."
+  },
+  "invalidUrl": {
+    "message": "Enter a complete URL, including its protocol."
+  },
+  "winner": {
+    "message": "Winner"
+  },
+  "winnerSummary": {
+    "message": "Winning rule: $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "conflictDetected": {
+    "message": "Multiple rules match"
+  },
+  "matchedRules": {
+    "message": "Matching rules"
+  },
+  "excludedRules": {
+    "message": "Excluded after matching"
+  },
+  "patternErrors": {
+    "message": "Pattern errors"
+  },
+  "priorityValue": {
+    "message": "Priority $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "matchedBy": {
+    "message": "Matched by: $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "excludedBy": {
+    "message": "Excluded by: $VALUE$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "environmentGroups": {
+    "message": "Environment groups"
+  },
+  "addGroup": {
+    "message": "Add group"
+  },
+  "renameGroup": {
+    "message": "Rename"
+  },
+  "deleteGroup": {
+    "message": "Delete"
+  },
+  "filterEnvironments": {
+    "message": "Filter environments..."
+  },
+  "reset": {
+    "message": "Reset"
+  },
+  "environmentName": {
+    "message": "Environment name"
+  },
+  "ruleOrder": {
+    "message": "Rule order"
+  },
+  "moveUp": {
+    "message": "Move up"
+  },
+  "moveDown": {
+    "message": "Move down"
+  },
+  "active": {
+    "message": "Active"
+  },
+  "duplicate": {
+    "message": "Duplicate"
+  },
+  "remove": {
+    "message": "Remove"
+  },
+  "shortLabel": {
+    "message": "Short label"
+  },
+  "badgeColor": {
+    "message": "Badge color"
+  },
+  "priority": {
+    "message": "Priority"
+  },
+  "group": {
+    "message": "Group"
+  },
+  "matchType": {
+    "message": "Match type"
+  },
+  "urlContains": {
+    "message": "URL contains"
+  },
+  "hostname": {
+    "message": "Domain / subdomain"
+  },
+  "urlGlob": {
+    "message": "URL glob (* and ?)"
+  },
+  "regularExpression": {
+    "message": "Regular expression"
+  },
+  "priorityHint": {
+    "message": "The highest priority wins. The displayed order breaks ties."
+  },
+  "urlPatterns": {
+    "message": "URL patterns, one per line"
+  },
+  "exclusionPatterns": {
+    "message": "Exclusion patterns, one per line"
+  },
+  "exclusionPatternsPlaceholder": {
+    "message": "staging.example.com/health"
+  },
+  "favicon": {
+    "message": "Favicon"
+  },
+  "faviconPlaceholder": {
+    "message": "icons/favicon-staging.ico, https://..., or data:image/..."
+  },
+  "chooseFile": {
+    "message": "Choose a file"
+  },
+  "generateFavicon": {
+    "message": "Generate"
+  },
+  "faviconPreview": {
+    "message": "Favicon preview"
+  },
+  "keepOriginalFavicon": {
+    "message": "Keep the original favicon"
+  },
+  "loading": {
+    "message": "Loading..."
+  },
+  "analyzingActiveTab": {
+    "message": "Analyzing the active tab..."
+  },
+  "extensionEnabled": {
+    "message": "Extension enabled"
+  },
+  "reapply": {
+    "message": "Reapply"
+  },
+  "configure": {
+    "message": "Configure"
+  },
+  "activeEnvironments": {
+    "message": "Active environments"
+  },
+  "configurationSaved": {
+    "message": "Configuration saved"
+  },
+  "saveFailed": {
+    "message": "The configuration could not be saved."
+  },
+  "loadFailed": {
+    "message": "The saved configuration could not be loaded; defaults are displayed."
+  },
+  "configurationImported": {
+    "message": "Configuration imported"
+  },
+  "configurationExported": {
+    "message": "Configuration exported"
+  },
+  "configurationReset": {
+    "message": "Configuration reset"
+  },
+  "configurationValid": {
+    "message": "Configuration valid"
+  },
+  "configurationIssueCount": {
+    "message": "$COUNT$ validation issue(s)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "copySuffix": {
+    "message": "copy"
+  },
+  "deleteGroupConfirm": {
+    "message": "Delete the group \"$NAME$\"?",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "environmentAdded": {
+    "message": "Environment added"
+  },
+  "environmentDuplicated": {
+    "message": "Environment duplicated"
+  },
+  "environmentRemoved": {
+    "message": "Environment removed"
+  },
+  "ruleMoved": {
+    "message": "Rule order updated"
+  },
+  "faviconImported": {
+    "message": "Favicon imported"
+  },
+  "faviconGenerated": {
+    "message": "Favicon generated"
+  },
+  "faviconImportFailed": {
+    "message": "The favicon could not be imported."
+  },
+  "faviconTooLarge": {
+    "message": "The favicon must be smaller than 128 KB."
+  },
+  "faviconInvalidType": {
+    "message": "Choose a valid image file."
+  },
+  "faviconReplaced": {
+    "message": "favicon replaced"
+  },
+  "globallyDisabled": {
+    "message": "The extension is disabled."
+  },
+  "groupAdded": {
+    "message": "Group added"
+  },
+  "groupDeleted": {
+    "message": "Group deleted"
+  },
+  "groupNameRequired": {
+    "message": "The group name is required."
+  },
+  "groupRenamed": {
+    "message": "Group renamed"
+  },
+  "invalidJson": {
+    "message": "The imported JSON configuration is invalid."
+  },
+  "importTooLarge": {
+    "message": "The configuration file must be smaller than 2 MB."
+  },
+  "label": {
+    "message": "Label"
+  },
+  "newEnvironment": {
+    "message": "New environment"
+  },
+  "newGroupName": {
+    "message": "New group name"
+  },
+  "noFilterMatches": {
+    "message": "No environment matches this filter."
+  },
+  "noMatchingEnvironment": {
+    "message": "No matching environment."
+  },
+  "originalFaviconKept": {
+    "message": "original favicon kept"
+  },
+  "removeEnvironmentConfirm": {
+    "message": "Delete \"$NAME$\"?",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "renameGroupPrompt": {
+    "message": "Rename group"
+  },
+  "resetConfirm": {
+    "message": "Reset the entire configuration?"
+  },
+  "ungrouped": {
+    "message": "Ungrouped"
+  },
+  "allGroups": {
+    "message": "All groups"
+  },
+  "untitled": {
+    "message": "Untitled"
+  },
+  "activeTab": {
+    "message": "Active tab"
+  },
+  "activeTabUnavailable": {
+    "message": "The active tab URL is not available."
+  },
+  "ruleValid": {
+    "message": "Rule valid"
+  },
+  "validationIssues": {
+    "message": "Validation issues"
+  },
+  "issueMissingPatterns": {
+    "message": "Add at least one inclusion pattern."
+  },
+  "issueInvalidPattern": {
+    "message": "Invalid pattern: $PATTERN$",
+    "placeholders": {
+      "pattern": {
+        "content": "$1"
+      }
+    }
+  },
+  "issueRegexTooLong": {
+    "message": "Regular expression is too long: $PATTERN$",
+    "placeholders": {
+      "pattern": {
+        "content": "$1"
+      }
+    }
+  },
+  "issueMissingFavicon": {
+    "message": "Choose, generate, or keep a favicon."
+  },
+  "issueInvalidUrl": {
+    "message": "The tested URL is invalid."
+  },
+  "issueUnknown": {
+    "message": "Unknown validation issue."
+  },
+  "matchedRuleCount": {
+    "message": "$COUNT$ matching rule(s)",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  }
 }

@@ -190,6 +190,37 @@
     return api?.runtime?.getURL ? api.runtime.getURL(favicon.replace(/^\//, "")) : favicon;
   }
 
+  function escapeXml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+  }
+
+  function readableTextColor(backgroundColor) {
+    const color = normalizeColor(backgroundColor).slice(1);
+    const red = Number.parseInt(color.slice(0, 2), 16);
+    const green = Number.parseInt(color.slice(2, 4), 16);
+    const blue = Number.parseInt(color.slice(4, 6), 16);
+    const luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255;
+    return luminance > 0.58 ? "#0f172a" : "#ffffff";
+  }
+
+  function createGeneratedFavicon(label, color = DEFAULT_COLOR) {
+    const characters = Array.from(normalizeString(label, "ENV"))
+      .filter((character) => /[\p{L}\p{N}]/u.test(character))
+      .slice(0, 3)
+      .join("")
+      .toUpperCase() || "ENV";
+    const background = normalizeColor(color);
+    const foreground = readableTextColor(background);
+    const fontSize = characters.length === 1 ? 34 : characters.length === 2 ? 26 : 20;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${background}"/><text x="32" y="34" dominant-baseline="middle" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="${fontSize}" font-weight="800" fill="${foreground}">${escapeXml(characters)}</text></svg>`;
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  }
+
   function parseUrl(url) {
     try {
       return new URL(String(url || ""));
@@ -344,6 +375,49 @@
     return normalized.rules.flatMap((rule, index) => validateRule(rule, index));
   }
 
+  function createExportPayload(settings) {
+    return {
+      format: "environment-favicon-switcher",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      settings: normalizeSettings(settings)
+    };
+  }
+
+  function parseImportPayload(payload) {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      throw new TypeError("The imported configuration must be a JSON object.");
+    }
+    if (payload.format === "environment-favicon-switcher") {
+      if (!payload.settings || typeof payload.settings !== "object") {
+        throw new TypeError("The imported configuration does not contain settings.");
+      }
+      return normalizeSettings(payload.settings);
+    }
+    return normalizeSettings(payload);
+  }
+
+  function mergeSettings(currentSettings, importedSettings) {
+    const current = normalizeSettings(currentSettings);
+    const imported = normalizeSettings(importedSettings);
+
+    const groupById = new Map(current.groups.map((group) => [group.id, group]));
+    imported.groups.forEach((group) => groupById.set(group.id, group));
+
+    const importedRuleById = new Map(imported.rules.map((rule) => [rule.id, rule]));
+    const mergedRules = current.rules.map((rule) => importedRuleById.get(rule.id) || rule);
+    const currentRuleIds = new Set(current.rules.map((rule) => rule.id));
+    imported.rules.forEach((rule) => {
+      if (!currentRuleIds.has(rule.id)) mergedRules.push(rule);
+    });
+
+    return normalizeSettings({
+      ...current,
+      groups: Array.from(groupById.values()),
+      rules: mergedRules
+    });
+  }
+
   globalThis.EnvFavicon = {
     api,
     SETTINGS_SCHEMA_VERSION,
@@ -360,6 +434,8 @@
     getSettings,
     saveSettings,
     faviconToUrl,
+    createGeneratedFavicon,
+    readableTextColor,
     sendMessageSafe,
     parseUrl,
     globToRegExp,
@@ -369,6 +445,9 @@
     findMatchingRules,
     findMatchingRule,
     validateRule,
-    validateSettings
+    validateSettings,
+    createExportPayload,
+    parseImportPayload,
+    mergeSettings
   };
 })();
