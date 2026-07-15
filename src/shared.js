@@ -7,6 +7,14 @@
   const SUPPORTED_MATCH_TYPES = new Set(["contains", "hostname", "glob", "regex"]);
   const DEFAULT_COLOR = "#64748b";
   const MAX_REGEX_LENGTH = 1000;
+  const STORAGE_PREFERENCE_KEY = "storagePreference";
+  const STORAGE_STATUS_KEY = "storageStatus";
+  const SYNC_PREFERENCE_KEY = "settingsSyncEnabled";
+  const SYNC_MANIFEST_KEY = "settingsSyncManifest";
+  const SYNC_CHUNK_PREFIX = "settingsSyncChunk";
+  const SYNC_FORMAT_VERSION = 1;
+  const SYNC_CHUNK_BYTES = 7000;
+  const MAX_SYNC_BYTES = 80 * 1024;
 
   function clone(value) {
     if (typeof structuredClone === "function") {
@@ -145,9 +153,23 @@
     return merged;
   }
 
+  class SettingsStorageError extends Error {
+    constructor(code, message, cause) {
+      super(message);
+      this.name = "SettingsStorageError";
+      this.code = code;
+      if (cause) this.cause = cause;
+    }
+  }
+
   function requireStorageArea(areaName = "local") {
     const storageArea = api?.storage?.[areaName];
-    if (!storageArea) throw new Error(`Browser storage area "${areaName}" is unavailable.`);
+    if (!storageArea) {
+      throw new SettingsStorageError(
+        `${areaName}-unavailable`,
+        `Browser storage area "${areaName}" is unavailable.`
+      );
+    }
     return storageArea;
   }
 
@@ -161,19 +183,260 @@
     return callApi(storageArea.set.bind(storageArea), values);
   }
 
-  async function getSettings() {
-    const stored = await getStorage(["settings"]);
-    const settings = normalizeSettings(stored?.settings);
-    if (!stored?.settings || stored.settings.schemaVersion !== SETTINGS_SCHEMA_VERSION) {
-      await setStorage({ settings });
+  async function removeStorage(keys, areaName = "local") {
+    const storageArea = requireStorageArea(areaName);
+    if (!storageArea.remove) return;
+    return callApi(storageArea.remove.bind(storageArea), keys);
+  }
+
+  function byteLength(value) {
+    const text = String(value || "");
+    if (typeof TextEncoder === "function") return new TextEncoder().encode(text).length;
+    return unescape(encodeURIComponent(text)).length;
+  }
+
+  function splitUtf8(value, maximumBytes = SYNC_CHUNK_BYTES) {
+    const chunks = [];
+    let chunk = "";
+    let chunkBytes = 0;
+
+    for (const character of String(value || "")) {
+      const characterBytes = byteLength(character);
+      if (chunk && chunkBytes + characterBytes > maximumBytes) {
+        chunks.push(chunk);
+        chunk = "";
+        chunkBytes = 0;
+      }
+      chunk += character;
+      chunkBytes += characterBytes;
     }
-    return settings;
+
+    if (chunk || !chunks.length) chunks.push(chunk);
+    return chunks;
+  }
+
+  function checksum(value) {
+    let hash = 0x811c9dc5;
+    const text = String(value || "");
+    for (let index = 0; index < text.length; index += 1) {
+      hash ^= text.charCodeAt(index);
+      hash = Math.imul(hash, 0x01000193);
+    }
+    return (hash >>> 0).toString(16).padStart(8, "0");
+  }
+
+  function syncChunkKey(index) {
+    return `${SYNC_CHUNK_PREFIX}_${index}`;
+  }
+
+  function syncAvailable() {
+    return Boolean(api?.storage?.sync);
+  }
+
+  async function getStoragePreference() {
+    const stored = await getStorage([STORAGE_PREFERENCE_KEY], "local");
+    const localPreference = stored?.[STORAGE_PREFERENCE_KEY];
+    if (localPreference === "sync" && syncAvailable()) return "sync";
+    if (localPreference === "local" || !syncAvailable()) return "local";
+
+    try {
+      const synchronized = await getStorage([SYNC_PREFERENCE_KEY], "sync");
+      if (synchronized?.[SYNC_PREFERENCE_KEY] === true) {
+        await setStorage({ [STORAGE_PREFERENCE_KEY]: "sync" }, "local");
+        return "sync";
+      }
+    } catch (_) {}
+    return "local";
+  }
+
+  async function loadLocalSettings() {
+    const stored = await getStorage(["settings"], "local");
+    const normalized = normalizeSettings(stored?.settings);
+    if (!stored?.settings || stored.settings.schemaVersion !== SETTINGS_SCHEMA_VERSION) {
+      await setStorage({ settings: normalized }, "local");
+    }
+    return normalized;
+  }
+
+  async function writeSyncSettings(settings) {
+    if (!syncAvailable()) {
+      throw new SettingsStorageError("sync-unavailable", "Synchronized browser storage is unavailable.");
+    }
+
+    const normalized = normalizeSettings(settings);
+    const serialized = JSON.stringify(normalized);
+    const totalBytes = byteLength(serialized);
+    if (totalBytes > MAX_SYNC_BYTES) {
+      throw new SettingsStorageError(
+        "sync-too-large",
+        `The configuration uses ${totalBytes} bytes; synchronized storage is limited to ${MAX_SYNC_BYTES} bytes.`
+      );
+    }
+
+    const chunks = splitUtf8(serialized);
+    const previous = await getStorage([SYNC_MANIFEST_KEY], "sync");
+    const previousChunkCount = Number.parseInt(previous?.[SYNC_MANIFEST_KEY]?.chunks, 10) || 0;
+    const values = {
+      [SYNC_MANIFEST_KEY]: {
+        format: "environment-favicon-switcher",
+        version: SYNC_FORMAT_VERSION,
+        schemaVersion: SETTINGS_SCHEMA_VERSION,
+        chunks: chunks.length,
+        bytes: totalBytes,
+        checksum: checksum(serialized),
+        updatedAt: new Date().toISOString()
+      }
+    };
+    chunks.forEach((chunk, index) => {
+      values[syncChunkKey(index)] = chunk;
+    });
+    await setStorage(values, "sync");
+
+    if (previousChunkCount > chunks.length) {
+      const staleKeys = [];
+      for (let index = chunks.length; index < previousChunkCount; index += 1) {
+        staleKeys.push(syncChunkKey(index));
+      }
+      await removeStorage(staleKeys, "sync");
+    }
+
+    return { bytes: totalBytes, chunks: chunks.length };
+  }
+
+  async function readSyncSettings() {
+    if (!syncAvailable()) {
+      throw new SettingsStorageError("sync-unavailable", "Synchronized browser storage is unavailable.");
+    }
+
+    const manifestResult = await getStorage([SYNC_MANIFEST_KEY, "settings"], "sync");
+    const manifest = manifestResult?.[SYNC_MANIFEST_KEY];
+
+    if (!manifest) {
+      if (manifestResult?.settings) return manifestResult.settings;
+      throw new SettingsStorageError("sync-missing", "No synchronized configuration was found.");
+    }
+    if (manifest.format !== "environment-favicon-switcher" || manifest.version !== SYNC_FORMAT_VERSION) {
+      throw new SettingsStorageError("sync-format", "The synchronized configuration format is unsupported.");
+    }
+
+    const chunkCount = Number.parseInt(manifest.chunks, 10);
+    if (!Number.isFinite(chunkCount) || chunkCount < 1 || chunkCount > 64) {
+      throw new SettingsStorageError("sync-corrupt", "The synchronized configuration manifest is invalid.");
+    }
+
+    const keys = Array.from({ length: chunkCount }, (_, index) => syncChunkKey(index));
+    const values = await getStorage(keys, "sync");
+    const chunks = keys.map((key) => values?.[key]);
+    if (chunks.some((chunk) => typeof chunk !== "string")) {
+      throw new SettingsStorageError("sync-corrupt", "One or more synchronized configuration chunks are missing.");
+    }
+
+    const serialized = chunks.join("");
+    if (manifest.checksum && checksum(serialized) !== manifest.checksum) {
+      throw new SettingsStorageError("sync-corrupt", "The synchronized configuration checksum is invalid.");
+    }
+
+    try {
+      return JSON.parse(serialized);
+    } catch (error) {
+      throw new SettingsStorageError("sync-corrupt", "The synchronized configuration is not valid JSON.", error);
+    }
+  }
+
+  async function recordStorageFallback(error) {
+    await setStorage({
+      [STORAGE_PREFERENCE_KEY]: "local",
+      [STORAGE_STATUS_KEY]: {
+        lastError: error?.code || "sync-error",
+        message: error?.message || String(error),
+        at: new Date().toISOString()
+      }
+    }, "local");
+  }
+
+  async function getSettings() {
+    const preference = await getStoragePreference();
+    if (preference !== "sync") return loadLocalSettings();
+
+    try {
+      const synchronized = await readSyncSettings();
+      const normalized = normalizeSettings(synchronized);
+      await setStorage({ settings: normalized, [STORAGE_STATUS_KEY]: null }, "local");
+      if (synchronized.schemaVersion !== SETTINGS_SCHEMA_VERSION) {
+        await writeSyncSettings(normalized);
+      }
+      return normalized;
+    } catch (error) {
+      const normalizedError = error instanceof SettingsStorageError
+        ? error
+        : new SettingsStorageError("sync-error", "Unable to read synchronized settings.", error);
+      await recordStorageFallback(normalizedError);
+      return loadLocalSettings();
+    }
   }
 
   async function saveSettings(settings) {
     const normalized = normalizeSettings(settings);
-    await setStorage({ settings: normalized });
+    await setStorage({ settings: normalized }, "local");
+
+    if (await getStoragePreference() === "sync") {
+      try {
+        await writeSyncSettings(normalized);
+        await setStorage({ [STORAGE_STATUS_KEY]: null }, "local");
+      } catch (error) {
+        const normalizedError = error instanceof SettingsStorageError
+          ? error
+          : new SettingsStorageError("sync-error", "Unable to write synchronized settings.", error);
+        await recordStorageFallback(normalizedError);
+        throw new SettingsStorageError(
+          "sync-fallback-local",
+          "Synchronized storage failed; the configuration was kept locally.",
+          normalizedError
+        );
+      }
+    }
+
     return normalized;
+  }
+
+  async function setStoragePreference(preference, settings) {
+    const target = preference === "sync" ? "sync" : "local";
+    const normalized = normalizeSettings(settings || await getSettings());
+    await setStorage({ settings: normalized }, "local");
+
+    if (target === "sync") {
+      await writeSyncSettings(normalized);
+      await setStorage({ [SYNC_PREFERENCE_KEY]: true }, "sync");
+    }
+
+    await setStorage({
+      [STORAGE_PREFERENCE_KEY]: target,
+      [STORAGE_STATUS_KEY]: null
+    }, "local");
+
+    if (target === "local" && syncAvailable()) {
+      try {
+        await setStorage({ [SYNC_PREFERENCE_KEY]: false }, "sync");
+      } catch (_) {}
+    }
+    return target;
+  }
+
+  async function getStorageStatus(settings) {
+    const normalized = normalizeSettings(settings || await loadLocalSettings());
+    const stored = await getStorage([STORAGE_STATUS_KEY], "local");
+    const preference = await getStoragePreference();
+    const bytes = byteLength(JSON.stringify(normalized));
+    return {
+      preference,
+      syncAvailable: syncAvailable(),
+      bytes,
+      maximumBytes: MAX_SYNC_BYTES,
+      chunks: Math.max(1, Math.ceil(bytes / SYNC_CHUNK_BYTES)),
+      lastError: stored?.[STORAGE_STATUS_KEY]?.lastError || null,
+      lastErrorMessage: stored?.[STORAGE_STATUS_KEY]?.message || "",
+      lastErrorAt: stored?.[STORAGE_STATUS_KEY]?.at || null
+    };
   }
 
   function sendMessageSafe(message) {
@@ -429,10 +692,26 @@
     normalizeGroup,
     normalizeRule,
     normalizeSettings,
+    SettingsStorageError,
+    MAX_SYNC_BYTES,
+    STORAGE_PREFERENCE_KEY,
+    STORAGE_STATUS_KEY,
+    SYNC_PREFERENCE_KEY,
+    SYNC_MANIFEST_KEY,
+    SYNC_CHUNK_PREFIX,
     getStorage,
     setStorage,
+    removeStorage,
+    getStoragePreference,
+    getStorageStatus,
+    setStoragePreference,
     getSettings,
     saveSettings,
+    writeSyncSettings,
+    readSyncSettings,
+    byteLength,
+    splitUtf8,
+    checksum,
     faviconToUrl,
     createGeneratedFavicon,
     readableTextColor,

@@ -254,7 +254,7 @@ h3 {
 
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
   gap: 14px;
   margin: 22px 0;
 }
@@ -271,6 +271,31 @@ h3 {
   border-radius: var(--radius);
   color: var(--text);
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+}
+
+.storage-setting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 7px;
+}
+
+.storage-setting > label {
+  color: var(--text);
+}
+
+.storage-status {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.storage-status.success {
+  color: var(--success);
+}
+
+.storage-status.warning {
+  color: var(--warning);
 }
 
 .diagnostics-panel {

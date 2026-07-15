@@ -416,5 +416,46 @@
         "content": "$1"
       }
     }
+  },
+  "storageMode": {
+    "message": "Stockage de la configuration"
+  },
+  "storageLocal": {
+    "message": "Local dans ce navigateur"
+  },
+  "storageSync": {
+    "message": "Synchronisation du navigateur"
+  },
+  "storageLoading": {
+    "message": "Vérification du stockage..."
+  },
+  "storageLocalActive": {
+    "message": "Configuration stockée localement dans ce navigateur."
+  },
+  "storageSyncActive": {
+    "message": "Configuration synchronisée : $VALUE$ Ko.",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "storageSyncEnabled": {
+    "message": "Synchronisation du navigateur activée"
+  },
+  "storageLocalEnabled": {
+    "message": "Stockage local activé"
+  },
+  "syncUnavailable": {
+    "message": "La synchronisation du navigateur est indisponible ; la configuration reste locale."
+  },
+  "syncTooLarge": {
+    "message": "Cette configuration est trop volumineuse pour être synchronisée ; elle reste locale."
+  },
+  "syncDataInvalid": {
+    "message": "Les données synchronisées sont illisibles ; la sauvegarde locale est active."
+  },
+  "syncFallbackLocal": {
+    "message": "La synchronisation a échoué ; votre dernière configuration a été conservée localement."
   }
 }

@@ -33,6 +33,14 @@
       <label class="setting-card"><input id="titlePrefixEnabled" type="checkbox"> <span data-i18n="titlePrefix">Add a prefix to the tab title</span></label>
       <label class="setting-card"><input id="reapplyOnChanges" type="checkbox"> <span data-i18n="reapplyOnChanges">Reapply when the application changes the favicon</span></label>
       <label class="setting-card"><input id="debug" type="checkbox"> <span data-i18n="debugLogs">Debug logs in the console</span></label>
+      <div class="setting-card storage-setting">
+        <label for="storagePreference" data-i18n="storageMode">Configuration storage</label>
+        <select id="storagePreference">
+          <option value="local" data-i18n="storageLocal">Local to this browser</option>
+          <option value="sync" data-i18n="storageSync">Browser synchronization</option>
+        </select>
+        <small id="storageStatus" class="storage-status"></small>
+      </div>
     </section>
 
     <section class="diagnostics-panel" aria-labelledby="ruleTesterTitle">

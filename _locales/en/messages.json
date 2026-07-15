@@ -416,5 +416,46 @@
         "content": "$1"
       }
     }
+  },
+  "storageMode": {
+    "message": "Configuration storage"
+  },
+  "storageLocal": {
+    "message": "Local to this browser"
+  },
+  "storageSync": {
+    "message": "Browser synchronization"
+  },
+  "storageLoading": {
+    "message": "Checking storage..."
+  },
+  "storageLocalActive": {
+    "message": "Stored locally in this browser."
+  },
+  "storageSyncActive": {
+    "message": "Synchronized configuration: $VALUE$ KB.",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "storageSyncEnabled": {
+    "message": "Browser synchronization enabled"
+  },
+  "storageLocalEnabled": {
+    "message": "Local storage enabled"
+  },
+  "syncUnavailable": {
+    "message": "Browser synchronization is unavailable; settings stay local."
+  },
+  "syncTooLarge": {
+    "message": "This configuration is too large to synchronize; settings stay local."
+  },
+  "syncDataInvalid": {
+    "message": "Synchronized data could not be read; the local backup is active."
+  },
+  "syncFallbackLocal": {
+    "message": "Synchronization failed; your latest configuration was kept locally."
   }
 }

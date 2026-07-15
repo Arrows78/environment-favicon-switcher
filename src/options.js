@@ -10,6 +10,7 @@
   const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
 
   let settings = null;
+  let storageStatus = null;
   let searchValue = "";
   let activeGroupId = ALL_GROUPS;
   let testedUrl = "";
@@ -69,14 +70,17 @@
       const saved = await saveQueue;
       if (revision === saveRevision) {
         settings = saved;
+        storageStatus = await EnvFavicon.getStorageStatus(saved);
         render();
       }
       toast(message);
       return saved;
     } catch (error) {
       console.error("Unable to save configuration", error);
-      toast(t("saveFailed"));
-      throw error;
+      storageStatus = await EnvFavicon.getStorageStatus(snapshot).catch(() => storageStatus);
+      render();
+      toast(error?.code === "sync-fallback-local" ? t("syncFallbackLocal") : t("saveFailed"));
+      return null;
     }
   }
 
@@ -121,6 +125,69 @@
       ].join(" ").toLowerCase();
       return ruleMatchesActiveGroup(rule) && searchable.includes(searchValue);
     });
+  }
+
+  function formatKilobytes(bytes) {
+    return (Math.max(0, Number(bytes) || 0) / 1024).toFixed(1);
+  }
+
+  function storageErrorMessage(code) {
+    if (code === "sync-too-large") return t("syncTooLarge");
+    if (code === "sync-unavailable") return t("syncUnavailable");
+    if (code === "sync-corrupt" || code === "sync-format" || code === "sync-missing") {
+      return t("syncDataInvalid");
+    }
+    return t("syncFallbackLocal");
+  }
+
+  function renderStorageStatus() {
+    const select = $("#storagePreference");
+    const node = $("#storageStatus");
+    if (!storageStatus) {
+      select.value = "local";
+      node.textContent = t("storageLoading");
+      return;
+    }
+
+    select.value = storageStatus.preference;
+    const syncOption = Array.from(select.options).find((option) => option.value === "sync");
+    if (syncOption) syncOption.disabled = !storageStatus.syncAvailable;
+
+    if (!storageStatus.syncAvailable) {
+      node.className = "storage-status warning";
+      node.textContent = t("syncUnavailable");
+      return;
+    }
+    if (storageStatus.lastError) {
+      node.className = "storage-status warning";
+      node.textContent = storageErrorMessage(storageStatus.lastError);
+      return;
+    }
+    if (storageStatus.preference === "sync") {
+      node.className = "storage-status success";
+      node.textContent = t("storageSyncActive", formatKilobytes(storageStatus.bytes));
+      return;
+    }
+    node.className = "storage-status";
+    node.textContent = t("storageLocalActive");
+  }
+
+  async function changeStoragePreference(preference) {
+    const select = $("#storagePreference");
+    select.disabled = true;
+    try {
+      await EnvFavicon.setStoragePreference(preference, settings);
+      storageStatus = await EnvFavicon.getStorageStatus(settings);
+      renderStorageStatus();
+      toast(preference === "sync" ? t("storageSyncEnabled") : t("storageLocalEnabled"));
+    } catch (error) {
+      console.error("Unable to change storage preference", error);
+      storageStatus = await EnvFavicon.getStorageStatus(settings).catch(() => storageStatus);
+      renderStorageStatus();
+      toast(storageErrorMessage(error?.code));
+    } finally {
+      select.disabled = false;
+    }
   }
 
   function renderGroupTabs() {
@@ -447,6 +514,7 @@
     $("#reapplyOnChanges").checked = settings.reapplyOnChanges;
     $("#debug").checked = settings.debug;
 
+    renderStorageStatus();
     renderGroupTabs();
     renderValidationSummary();
 
@@ -497,6 +565,9 @@
   $("#titlePrefixEnabled").addEventListener("change", (event) => updateGlobalSetting("titlePrefixEnabled", event.target.checked));
   $("#reapplyOnChanges").addEventListener("change", (event) => updateGlobalSetting("reapplyOnChanges", event.target.checked));
   $("#debug").addEventListener("change", (event) => updateGlobalSetting("debug", event.target.checked));
+  $("#storagePreference").addEventListener("change", (event) => {
+    void changeStoragePreference(event.target.value);
+  });
 
   $("#search").addEventListener("input", (event) => {
     searchValue = event.target.value.trim().toLowerCase();
@@ -611,13 +682,21 @@
   });
 
   EnvFavicon.getSettings()
-    .then((loaded) => {
+    .then(async (loaded) => {
       settings = loaded;
+      storageStatus = await EnvFavicon.getStorageStatus(loaded);
       render();
     })
     .catch((error) => {
       console.error("Unable to load configuration", error);
       settings = EnvFavicon.normalizeSettings(DEFAULT_SETTINGS);
+      storageStatus = {
+        preference: "local",
+        syncAvailable: Boolean(EnvFavicon.api?.storage?.sync),
+        bytes: EnvFavicon.byteLength(JSON.stringify(settings)),
+        maximumBytes: EnvFavicon.MAX_SYNC_BYTES,
+        lastError: null
+      };
       render();
       toast(t("loadFailed"));
     });
