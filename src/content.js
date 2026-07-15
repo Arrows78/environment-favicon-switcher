@@ -1,149 +1,280 @@
 /* global EnvFavicon */
 (() => {
+  "use strict";
+
   if (window.top !== window.self) return;
 
-  let originalTitle = document.title;
-  let originalFavicons = [];
-  let currentRuleId = null;
-  let observer = null;
-  let applying = false;
+  const MANAGED_FAVICON_ATTRIBUTE = "data-environment-favicon-switcher";
+  const MANAGED_FAVICON_SELECTOR = `link[${MANAGED_FAVICON_ATTRIBUTE}="true"]`;
+  const ICON_SELECTOR = 'link[rel~="icon"], link[rel="shortcut icon"]';
+  const extensionApi = EnvFavicon.api;
 
-  const log = (...args) => {
-    EnvFavicon.getSettings().then((settings) => {
-      if (settings.debug) console.info("[Env Favicon]", ...args);
-    });
-  };
+  let currentSettings = null;
+  let currentRule = null;
+  let currentPrefix = "";
+  let baseTitle = document.title;
+  let managedTitle = null;
+  let mutationObserver = null;
+  let applyTimer = null;
+  let storageTimer = null;
+  let applyRevision = 0;
+  let lastUrl = window.location.href;
+  let lastStatusSignature = "";
 
-  function rememberOriginalFavicons() {
-    if (originalFavicons.length) return;
-    originalFavicons = Array.from(document.querySelectorAll('link[rel~="icon"], link[rel="shortcut icon"]')).map((link) => ({
-      rel: link.getAttribute("rel") || "icon",
-      href: link.getAttribute("href") || "",
-      type: link.getAttribute("type") || "",
-      sizes: link.getAttribute("sizes") || ""
-    }));
+  function debug(...values) {
+    if (currentSettings?.debug) console.info("[Environment Favicon Switcher]", ...values);
   }
 
-  function removeManagedFavicons() {
-    document.querySelectorAll('link[data-env-favicon="true"]').forEach((link) => link.remove());
+  function managedFavicon() {
+    return document.querySelector(MANAGED_FAVICON_SELECTOR);
+  }
+
+  function removeManagedFavicon() {
+    managedFavicon()?.remove();
+  }
+
+  function faviconType(href) {
+    const normalized = String(href || "").toLowerCase();
+    if (normalized.startsWith("data:image/svg+xml") || normalized.endsWith(".svg")) return "image/svg+xml";
+    if (normalized.startsWith("data:image/png") || normalized.endsWith(".png")) return "image/png";
+    if (normalized.startsWith("data:image/jpeg") || /\.jpe?g(?:$|[?#])/.test(normalized)) return "image/jpeg";
+    return "image/x-icon";
   }
 
   function setManagedFavicon(href) {
-    if (!document.head || !href) return;
-    removeManagedFavicons();
-    document.querySelectorAll('link[rel~="icon"], link[rel="shortcut icon"]').forEach((link) => {
-      link.dataset.envFaviconHidden = "true";
-      link.disabled = true;
-    });
-
-    const link = document.createElement("link");
-    link.rel = "icon";
-    link.type = "image/x-icon";
-    link.href = href;
-    link.dataset.envFavicon = "true";
-    document.head.appendChild(link);
-  }
-
-  function restoreOriginalFavicon() {
-    removeManagedFavicons();
-    document.querySelectorAll('[data-env-favicon-hidden="true"]').forEach((link) => {
-      link.disabled = false;
-      delete link.dataset.envFaviconHidden;
-    });
-
-    if (!document.querySelector('link[rel~="icon"], link[rel="shortcut icon"]') && originalFavicons.length) {
-      originalFavicons.forEach((favicon) => {
-        const link = document.createElement("link");
-        link.rel = favicon.rel;
-        link.href = favicon.href;
-        if (favicon.type) link.type = favicon.type;
-        if (favicon.sizes) link.sizes = favicon.sizes;
-        document.head.appendChild(link);
-      });
-    }
-  }
-
-  function setTitlePrefix(rule, settings) {
-    if (!settings.titlePrefixEnabled) {
-      if (document.title.startsWith("[")) document.title = originalTitle || document.title;
+    if (!document.head || !href) {
+      removeManagedFavicon();
       return;
     }
 
-    if (!originalTitle || !document.title.match(/^\[[^\]]+\]\s/)) {
-      originalTitle = document.title;
+    let link = managedFavicon();
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      link.setAttribute(MANAGED_FAVICON_ATTRIBUTE, "true");
     }
+    link.type = faviconType(href);
+    link.href = href;
 
-    const prefix = `[${rule.label || rule.name}] `;
-    document.title = `${prefix}${originalTitle.replace(/^\[[^\]]+\]\s*/, "")}`;
+    // Keep the managed favicon last without mutating or disabling page-owned icons.
+    if (link.parentNode) link.remove();
+    document.head.appendChild(link);
+  }
+
+  function stripManagedPrefix(title) {
+    const normalized = String(title || "");
+    if (currentPrefix && normalized.startsWith(currentPrefix)) {
+      return normalized.slice(currentPrefix.length);
+    }
+    return normalized;
+  }
+
+  function captureApplicationTitle() {
+    const currentTitle = document.title;
+    if (managedTitle !== null && currentTitle === managedTitle) return;
+    baseTitle = stripManagedPrefix(currentTitle);
+    managedTitle = null;
+  }
+
+  function updateTitle(rule, settings) {
+    captureApplicationTitle();
+    const nextPrefix = settings.titlePrefixEnabled && rule
+      ? `[${rule.label || rule.name}] `
+      : "";
+    currentPrefix = nextPrefix;
+    const desiredTitle = `${nextPrefix}${baseTitle}`;
+
+    managedTitle = desiredTitle;
+    if (document.title !== desiredTitle) document.title = desiredTitle;
+  }
+
+  function statusSignature(payload) {
+    return JSON.stringify([
+      payload.enabled,
+      payload.url,
+      payload.rule?.id || null,
+      payload.matchedBy || null,
+      payload.matchCount || 0
+    ]);
+  }
+
+  function sendStatus(diagnosis) {
+    const winnerEvaluation = diagnosis.matches[0] || null;
+    const payload = {
+      type: "ENV_FAVICON_STATUS",
+      enabled: diagnosis.enabled,
+      url: window.location.href,
+      rule: diagnosis.winner,
+      matchedBy: winnerEvaluation?.includedBy || null,
+      matchCount: diagnosis.matches.length,
+      hasConflict: diagnosis.hasConflict
+    };
+    const signature = statusSignature(payload);
+    if (signature === lastStatusSignature) return;
+    lastStatusSignature = signature;
+    EnvFavicon.sendMessageSafe(payload);
   }
 
   async function applyForCurrentUrl(reason = "apply") {
-    if (applying) return;
-    applying = true;
-
+    const revision = ++applyRevision;
+    let settings;
     try {
-      rememberOriginalFavicons();
-      const settings = await EnvFavicon.getSettings();
-      const rule = EnvFavicon.findMatchingRule(window.location.href, settings);
+      settings = await EnvFavicon.getSettings();
+    } catch (error) {
+      console.error("[Environment Favicon Switcher] Unable to load settings", error);
+      return;
+    }
+    if (revision !== applyRevision) return;
 
-      if (!rule) {
-        currentRuleId = null;
-        restoreOriginalFavicon();
-        if (settings.titlePrefixEnabled) document.title = originalTitle || document.title;
-        EnvFavicon.sendMessageSafe({ type: "ENV_FAVICON_STATUS", rule: null, url: window.location.href });
+    currentSettings = settings;
+    const diagnosis = EnvFavicon.diagnoseUrl(window.location.href, settings);
+    currentRule = diagnosis.winner;
+
+    if (currentRule && !currentRule.keepOriginalFavicon) {
+      setManagedFavicon(EnvFavicon.faviconToUrl(currentRule.favicon));
+    } else {
+      removeManagedFavicon();
+    }
+    updateTitle(currentRule, settings);
+    configureMutationObserver(settings);
+    sendStatus(diagnosis);
+    debug(reason, currentRule?.name || "no match", diagnosis.matches.length);
+  }
+
+  function scheduleApply(reason, delay = 60) {
+    clearTimeout(applyTimer);
+    applyTimer = setTimeout(() => void applyForCurrentUrl(reason), delay);
+  }
+
+  function nodeContainsRelevantElement(node) {
+    if (node.nodeType !== Node.ELEMENT_NODE) return false;
+    if (node.matches?.(MANAGED_FAVICON_SELECTOR)) return false;
+    if (node.matches?.(`${ICON_SELECTOR}, title`)) return true;
+    return Boolean(node.querySelector?.(`${ICON_SELECTOR}, title`));
+  }
+
+  function mutationNeedsFaviconReapply(mutation) {
+    if (!currentSettings?.reapplyOnChanges || !currentRule || currentRule.keepOriginalFavicon) return false;
+    if (mutation.target?.matches?.(MANAGED_FAVICON_SELECTOR)) return false;
+    if (mutation.type === "attributes") return mutation.target?.matches?.(ICON_SELECTOR) || false;
+    return Array.from(mutation.addedNodes || []).some(nodeContainsRelevantElement)
+      || Array.from(mutation.removedNodes || []).some(nodeContainsRelevantElement);
+  }
+
+  function mutationChangesApplicationTitle(mutation) {
+    const titleElement = mutation.target?.nodeType === Node.TEXT_NODE
+      ? mutation.target.parentElement
+      : mutation.target;
+    if (titleElement?.matches?.("title")) return document.title !== managedTitle;
+    return Array.from(mutation.addedNodes || []).some((node) =>
+      node.nodeType === Node.ELEMENT_NODE && (node.matches?.("title") || node.querySelector?.("title"))
+    );
+  }
+
+  function configureMutationObserver(settings) {
+    const shouldObserve = settings.reapplyOnChanges || settings.titlePrefixEnabled;
+    if (!shouldObserve) {
+      mutationObserver?.disconnect();
+      mutationObserver = null;
+      return;
+    }
+    if (mutationObserver || !document.documentElement) return;
+
+    mutationObserver = new MutationObserver((mutations) => {
+      const urlChanged = window.location.href !== lastUrl;
+      if (urlChanged) {
+        lastUrl = window.location.href;
+        scheduleApply("url mutation", 20);
         return;
       }
 
-      currentRuleId = rule.id;
-      if (rule.keepOriginalFavicon) {
-        restoreOriginalFavicon();
-      } else {
-        setManagedFavicon(EnvFavicon.faviconToUrl(rule.favicon));
-      }
-      setTitlePrefix(rule, settings);
-      EnvFavicon.sendMessageSafe({ type: "ENV_FAVICON_STATUS", rule, url: window.location.href });
-      log(reason, rule.name);
-    } finally {
-      applying = false;
-    }
-  }
-
-  function observeChanges() {
-    if (observer || !document.documentElement) return;
-    observer = new MutationObserver((mutations) => {
-      const shouldReapply = mutations.some((mutation) =>
-        Array.from(mutation.addedNodes || []).some((node) =>
-          node.nodeType === Node.ELEMENT_NODE && node.matches?.('link[rel~="icon"], link[rel="shortcut icon"], title')
-        )
-      );
-      if (shouldReapply) setTimeout(() => applyForCurrentUrl("mutation"), 50);
+      const titleChanged = currentSettings?.titlePrefixEnabled
+        && mutations.some(mutationChangesApplicationTitle);
+      const faviconChanged = mutations.some(mutationNeedsFaviconReapply);
+      if (titleChanged) captureApplicationTitle();
+      if (titleChanged || faviconChanged) scheduleApply(titleChanged ? "title mutation" : "favicon mutation");
     });
-    observer.observe(document.documentElement, { childList: true, subtree: true });
+    mutationObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["href", "rel", "type", "sizes"],
+      characterData: true,
+      childList: true,
+      subtree: true
+    });
   }
 
-  function patchHistory(method) {
+  function patchHistoryMethod(method) {
     const original = history[method];
-    history[method] = function patchedHistoryMethod(...args) {
+    if (typeof original !== "function" || original.__environmentFaviconPatched) return;
+    function patchedHistoryMethod(...args) {
       const result = original.apply(this, args);
-      setTimeout(() => applyForCurrentUrl(`history:${method}`), 50);
+      lastUrl = window.location.href;
+      scheduleApply(`history:${method}`, 20);
       return result;
-    };
+    }
+    Object.defineProperty(patchedHistoryMethod, "__environmentFaviconPatched", { value: true });
+    try {
+      history[method] = patchedHistoryMethod;
+    } catch (_) {}
   }
 
-  patchHistory("pushState");
-  patchHistory("replaceState");
-  window.addEventListener("popstate", () => setTimeout(() => applyForCurrentUrl("popstate"), 50));
+  async function handleStorageChanges(changes, areaName) {
+    if (areaName === "sync" && changes?.[EnvFavicon.SYNC_PREFERENCE_KEY]) {
+      const synchronized = changes[EnvFavicon.SYNC_PREFERENCE_KEY].newValue === true;
+      await EnvFavicon.setStorage({
+        [EnvFavicon.STORAGE_PREFERENCE_KEY]: synchronized ? "sync" : "local"
+      }, "local").catch(() => {});
+    }
 
-  EnvFavicon.api.storage.onChanged.addListener((changes, area) => {
-    if (area === "local" && changes.settings) applyForCurrentUrl("settings");
+    const localChange = areaName === "local"
+      && (changes.settings || changes[EnvFavicon.STORAGE_PREFERENCE_KEY]);
+    const syncChange = areaName === "sync"
+      && Object.keys(changes).some((key) =>
+        key === EnvFavicon.SYNC_MANIFEST_KEY
+        || key === EnvFavicon.SYNC_PREFERENCE_KEY
+        || key.startsWith(EnvFavicon.SYNC_CHUNK_PREFIX)
+      );
+    if (!localChange && !syncChange) return;
+
+    clearTimeout(storageTimer);
+    storageTimer = setTimeout(() => scheduleApply(`storage:${areaName}`, 20), syncChange ? 260 : 40);
+  }
+
+  patchHistoryMethod("pushState");
+  patchHistoryMethod("replaceState");
+  window.addEventListener("popstate", () => {
+    lastUrl = window.location.href;
+    scheduleApply("popstate", 20);
+  });
+  window.addEventListener("hashchange", () => {
+    lastUrl = window.location.href;
+    scheduleApply("hashchange", 20);
+  });
+  window.navigation?.addEventListener?.("navigate", () => scheduleApply("navigation", 20));
+
+  const urlWatchTimer = window.setInterval(() => {
+    if (window.location.href === lastUrl) return;
+    lastUrl = window.location.href;
+    scheduleApply("url watch", 20);
+  }, 1500);
+
+  extensionApi?.storage?.onChanged?.addListener((changes, areaName) => {
+    void handleStorageChanges(changes, areaName);
   });
 
-  EnvFavicon.api.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  extensionApi?.runtime?.onMessage?.addListener((message, _sender, sendResponse) => {
     if (message?.type === "ENV_FAVICON_GET_STATUS") {
       EnvFavicon.getSettings().then((settings) => {
-        const rule = EnvFavicon.findMatchingRule(window.location.href, settings);
-        sendResponse({ rule, url: window.location.href, enabled: settings.enabled });
-      });
+        const diagnosis = EnvFavicon.diagnoseUrl(window.location.href, settings);
+        sendResponse({
+          rule: diagnosis.winner,
+          url: window.location.href,
+          enabled: diagnosis.enabled,
+          matchedBy: diagnosis.matches[0]?.includedBy || null,
+          matchCount: diagnosis.matches.length,
+          hasConflict: diagnosis.hasConflict
+        });
+      }).catch(() => sendResponse({ rule: null, url: window.location.href, enabled: false }));
       return true;
     }
     if (message?.type === "ENV_FAVICON_REAPPLY") {
@@ -153,8 +284,5 @@
     return false;
   });
 
-  EnvFavicon.getSettings().then((settings) => {
-    if (settings.reapplyOnChanges) observeChanges();
-    applyForCurrentUrl("init");
-  });
+  void applyForCurrentUrl("init");
 })();

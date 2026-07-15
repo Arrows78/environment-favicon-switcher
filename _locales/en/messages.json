@@ -457,5 +457,30 @@
   },
   "syncFallbackLocal": {
     "message": "Synchronization failed; your latest configuration was kept locally."
+  },
+  "detectedEnvironmentConflict": {
+    "message": "Detected environment: $NAME$ ($COUNT$ matching rules)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "popupConflict": {
+    "message": "$COUNT$ rules match; the highest priority rule was selected.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popupLoadFailed": {
+    "message": "The active tab could not be analyzed."
+  },
+  "noActiveEnvironments": {
+    "message": "No active environment rules."
   }
 }

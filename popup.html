@@ -3,23 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <title>Environment Favicon Switcher</title>
-
   <link rel="stylesheet" href="styles/app.css">
 </head>
-
 <body class="popup-body">
   <main class="popup">
     <header class="popup-header">
       <img src="icons/icon-48.png" alt="" width="32" height="32">
       <div>
-        <h1>Environment Favicon Switcher</h1>
-        <p id="currentUrl" data-i18n="loading">Loading…</p>
+        <h1>Env Favicon</h1>
+        <p id="currentUrl" data-i18n="loading">Loading...</p>
       </div>
     </header>
 
-    <section id="status" class="status-card muted" data-i18n="analyzingActiveTab">Analyzing the active tab…</section>
+    <section id="status" class="status-card muted" aria-live="polite">
+      <span data-i18n="analyzingActiveTab">Analyzing the active tab...</span>
+    </section>
 
     <label class="switch-row">
       <span data-i18n="extensionEnabled">Extension enabled</span>
@@ -35,9 +34,7 @@
       <summary data-i18n="activeEnvironments">Active environments</summary>
       <ul id="rulesList" class="rules-list"></ul>
     </details>
-
   </main>
-
   <script src="src/i18n.js"></script>
   <script src="config/defaults.js"></script>
   <script src="src/shared.js"></script>

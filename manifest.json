@@ -4,7 +4,7 @@
   "short_name": "__MSG_extensionShortName__",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "author": "Thomas Jost",
   "icons": {
     "16": "icons/icon-16.png",
@@ -60,5 +60,15 @@
       "id": "{3fda7578-a517-4335-8ec4-cad2a55b1979}",
       "strict_min_version": "109.0"
     }
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }

@@ -457,5 +457,30 @@
   },
   "syncFallbackLocal": {
     "message": "La synchronisation a échoué ; votre dernière configuration a été conservée localement."
+  },
+  "detectedEnvironmentConflict": {
+    "message": "Environnement détecté : $NAME$ ($COUNT$ règles correspondantes)",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      },
+      "count": {
+        "content": "$2"
+      }
+    }
+  },
+  "popupConflict": {
+    "message": "$COUNT$ règles correspondent ; celle avec la priorité la plus élevée a été choisie.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "popupLoadFailed": {
+    "message": "L'onglet actif n'a pas pu être analysé."
+  },
+  "noActiveEnvironments": {
+    "message": "Aucune règle d'environnement active."
   }
 }
