@@ -1,0 +1,16 @@
+{
+  "name": "environment-favicon-switcher",
+  "version": "2.2.0",
+  "description": "Browser extension that makes development environments immediately identifiable through favicons, badges and title prefixes.",
+  "private": true,
+  "scripts": {
+    "lint": "node scripts/check.mjs",
+    "test": "node --test",
+    "validate": "npm run lint && npm test",
+    "package:extension": "node scripts/package.mjs",
+    "build": "npm run validate && npm run package:extension"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
