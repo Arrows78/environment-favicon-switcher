@@ -337,9 +337,13 @@
     }
 
     try {
-      return JSON.parse(serialized);
+      const parsed = JSON.parse(serialized);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new TypeError("The synchronized configuration must be a JSON object.");
+      }
+      return parsed;
     } catch (error) {
-      throw new SettingsStorageError("sync-corrupt", "The synchronized configuration is not valid JSON.", error);
+      throw new SettingsStorageError("sync-corrupt", "The synchronized configuration is not valid settings JSON.", error);
     }
   }
 
@@ -362,7 +366,7 @@
       const synchronized = await readSyncSettings();
       const normalized = normalizeSettings(synchronized);
       await setStorage({ settings: normalized, [STORAGE_STATUS_KEY]: null }, "local");
-      if (synchronized.schemaVersion !== SETTINGS_SCHEMA_VERSION) {
+      if (synchronized?.schemaVersion !== SETTINGS_SCHEMA_VERSION) {
         await writeSyncSettings(normalized);
       }
       return normalized;
@@ -652,7 +656,10 @@
       throw new TypeError("The imported configuration must be a JSON object.");
     }
     if (payload.format === "environment-favicon-switcher") {
-      if (!payload.settings || typeof payload.settings !== "object") {
+      if (payload.version !== 1) {
+        throw new TypeError("The imported configuration format version is unsupported.");
+      }
+      if (!payload.settings || typeof payload.settings !== "object" || Array.isArray(payload.settings)) {
         throw new TypeError("The imported configuration does not contain settings.");
       }
       return normalizeSettings(payload.settings);

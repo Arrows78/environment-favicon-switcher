@@ -215,3 +215,43 @@ test("UTF-8 chunks stay within the configured byte limit", () => {
   assert.equal(chunks.join(""), "e".repeat(6999) + "\u{1F680}" + "z");
   chunks.forEach((chunk) => assert.ok(EnvFavicon.byteLength(chunk) <= 7000));
 });
+
+test("versioned imports reject unsupported formats and non-object settings", () => {
+  const { EnvFavicon, DEFAULT_SETTINGS } = loadCore();
+
+  assert.throws(
+    () => EnvFavicon.parseImportPayload({
+      format: "environment-favicon-switcher",
+      version: 99,
+      settings: DEFAULT_SETTINGS
+    }),
+    /version is unsupported/
+  );
+  assert.throws(
+    () => EnvFavicon.parseImportPayload({
+      format: "environment-favicon-switcher",
+      version: 1,
+      settings: []
+    }),
+    /does not contain settings/
+  );
+});
+
+test("structurally invalid synchronized JSON falls back to the local backup", async () => {
+  const { EnvFavicon, DEFAULT_SETTINGS, stores } = loadCore();
+  const settings = EnvFavicon.normalizeSettings(DEFAULT_SETTINGS);
+  settings.rules[0].name = "Safe local copy";
+  await EnvFavicon.setStoragePreference("sync", settings);
+
+  stores.sync[`${EnvFavicon.SYNC_CHUNK_PREFIX}_0`] = "null";
+  stores.sync[EnvFavicon.SYNC_MANIFEST_KEY] = {
+    ...stores.sync[EnvFavicon.SYNC_MANIFEST_KEY],
+    chunks: 1,
+    checksum: "77074ba4"
+  };
+
+  const loaded = await EnvFavicon.getSettings();
+  assert.equal(loaded.rules[0].name, "Safe local copy");
+  assert.equal(await EnvFavicon.getStoragePreference(), "local");
+  assert.equal((await EnvFavicon.getStorageStatus(loaded)).lastError, "sync-corrupt");
+});
