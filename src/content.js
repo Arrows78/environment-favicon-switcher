@@ -93,8 +93,13 @@
       payload.enabled,
       payload.url,
       payload.rule?.id || null,
+      payload.rule?.name || null,
+      payload.rule?.label || null,
+      payload.rule?.color || null,
+      payload.rule?.priority || 0,
       payload.matchedBy || null,
-      payload.matchCount || 0
+      payload.matchCount || 0,
+      Boolean(payload.hasConflict)
     ]);
   }
 

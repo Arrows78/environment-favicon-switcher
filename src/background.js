@@ -54,6 +54,13 @@
       .catch(() => {});
   });
 
+  extensionApi?.tabs?.onUpdated?.addListener((tabId, changeInfo) => {
+    if (!changeInfo?.url && changeInfo?.status !== "loading") return;
+    // Clear the previous page state immediately. A supported page will publish
+    // its fresh diagnosis once the content script starts.
+    void updateAction(tabId, { enabled: true, rule: null });
+  });
+
   extensionApi?.storage?.onChanged?.addListener((changes, areaName) => {
     if (areaName !== "sync") return;
 
