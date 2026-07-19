@@ -1,6 +1,6 @@
 {
   "name": "environment-favicon-switcher",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Browser extension that makes development environments immediately identifiable through favicons, badges and title prefixes.",
   "private": true,
   "scripts": {

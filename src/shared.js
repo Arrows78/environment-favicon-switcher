@@ -5,7 +5,7 @@
   const api = globalThis.browser || globalThis.chrome || null;
   const SETTINGS_SCHEMA_VERSION = 2;
   const SUPPORTED_MATCH_TYPES = new Set(["contains", "hostname", "glob", "regex"]);
-  const DEFAULT_COLOR = "#64748b";
+  const DEFAULT_COLOR = "#64748B";
   const MAX_REGEX_LENGTH = 1000;
   const STORAGE_PREFERENCE_KEY = "storagePreference";
   const STORAGE_STATUS_KEY = "storageStatus";
@@ -78,7 +78,7 @@
 
   function normalizeColor(value, fallback = DEFAULT_COLOR) {
     const color = String(value || "").trim();
-    return /^#[0-9a-f]{6}$/i.test(color) ? color.toLowerCase() : fallback;
+    return /^#[0-9A-F]{6}$/i.test(color) ? color.toUpperCase() : fallback;
   }
 
   function normalizeInteger(value, fallback = 0, minimum = -999, maximum = 999) {

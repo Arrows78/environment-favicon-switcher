@@ -194,9 +194,9 @@
     const tabs = $("#groupTabs");
     clear(tabs);
     const definitions = [
-      { id: ALL_GROUPS, name: t("allGroups"), color: "#64748b" },
+      { id: ALL_GROUPS, name: t("allGroups"), color: "#64748B" },
       ...settings.groups,
-      { id: UNGROUPED, name: t("ungrouped"), color: "#94a3b8" }
+      { id: UNGROUPED, name: t("ungrouped"), color: "#94A3B8" }
     ];
 
     definitions.forEach((group) => {
@@ -596,7 +596,7 @@
     const group = EnvFavicon.normalizeGroup({
       id: EnvFavicon.makeId("group"),
       name: name.trim(),
-      color: "#64748b"
+      color: "#64748B"
     });
     settings.groups.push(group);
     activeGroupId = group.id;
@@ -635,11 +635,11 @@
       groupId,
       name: t("newEnvironment"),
       label: "ENV",
-      color: "#64748b",
+      color: "#64748B",
       priority: Math.min(999, highestPriority + 10),
       matchType: "hostname",
       patterns: ["example.local"],
-      favicon: EnvFavicon.createGeneratedFavicon("ENV", "#64748b")
+      favicon: EnvFavicon.createGeneratedFavicon("ENV", "#64748B")
     }));
     void persist(t("environmentAdded"));
   });

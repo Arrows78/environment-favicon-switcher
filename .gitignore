@@ -1,2 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.crx
+*.xpi
+
+# OS
 .DS_Store
+Thumbs.db
+*~
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing / coverage
+coverage/
+
+# Environment
+.env
+.env.*
+
+# Browser extension
+.web-extension-id
+
+# Personal
 config/personal

@@ -43,7 +43,7 @@
 
     await Promise.all([
       callAction("setBadgeText", { tabId, text: label }),
-      callAction("setBadgeBackgroundColor", { tabId, color: rule.color || "#64748b" }),
+      callAction("setBadgeBackgroundColor", { tabId, color: rule.color || "#64748B" }),
       callAction("setTitle", { tabId, title })
     ]);
   }

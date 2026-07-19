@@ -18,9 +18,10 @@ Environment Favicon Switcher is a small WebExtension with one shared domain laye
           ┌──────────────┘       │       └──────────────┐
           │                      │                      │
 ┌──────────────────┐   ┌──────────────────┐   ┌──────────────────┐
-│ options page     │   │ popup           │   │ content script   │
-│ edit + diagnose  │   │ active-tab view │   │ favicon + title  │
-└──────────────────┘   └────────┬─────────┘   └────────┬─────────┘
+│ options page     │   │ popup            │   │ content script   │
+│ src/options.js   │   │ active-tab view  │   │ favicon + title  │
+│ src/ui.js        │   │                  │   │                  │
+└──────────────────┘   └────────┬─────────┘   └─────────┬────────┘
                                 │ runtime messages      │
                                 ▼                       ▼
                          ┌────────────────────────────────┐
@@ -165,5 +166,12 @@ Background code is shared by the Chromium service worker and Firefox background 
 - favicon generation and label sanitization;
 - versioned/legacy imports and merge semantics;
 - synchronized round trips, Unicode chunk boundaries, corruption, fallback and size limits.
+
+`tests/ui.test.js` validates the options page and popup markup, CSS design tokens and `src/ui.js` behavior:
+
+- semantic design token coverage (color, type, spacing, shape, elevation, motion);
+- WCAG AA contrast ratios for text and feedback pairs in both themes;
+- keyboard focus management, `aria-pressed` group semantics and live-region scoping;
+- responsive layout reflow and unique static document IDs.
 
 Browser smoke testing should additionally cover the options page, popup, title updates, page-owned favicon preservation, SPA navigation and packaged-manifest loading.

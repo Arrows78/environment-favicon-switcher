@@ -3,21 +3,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Configure Environment Favicon Switcher</title>
+  <title data-i18n="extensionName">Environment Favicon Switcher</title>
   <link rel="stylesheet" href="styles/app.css">
 </head>
 <body>
   <main class="options-page">
     <header class="hero">
-      <div>
+      <div class="hero-copy">
         <p class="eyebrow" data-i18n="browserExtension">Browser extension</p>
-        <h1>Environment Favicon Switcher</h1>
+        <h1 data-i18n="extensionName">Environment Favicon Switcher</h1>
         <p data-i18n="optionsIntro">Customize favicons by environment with explicit priorities, exclusions, and diagnostics.</p>
       </div>
       <div class="hero-actions">
-        <button id="addRule" class="primary" type="button" data-i18n="addEnvironment">Add environment</button>
-        <button id="exportConfig" type="button" data-i18n="export">Export</button>
+        <button id="addRule" class="primary" type="button">
+          <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          <span data-i18n="addEnvironment">Add environment</span>
+        </button>
+        <button id="exportConfig" type="button">
+          <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+            <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"></path>
+          </svg>
+          <span data-i18n="export">Export</span>
+        </button>
         <label class="import-button">
+          <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+            <path d="M12 16V4m0 0 4 4m-4-4L8 8M5 20h14"></path>
+          </svg>
           <span data-i18n="import">Import</span>
           <input id="importConfig" type="file" accept="application/json,.json">
         </label>
@@ -28,18 +41,35 @@
       </div>
     </header>
 
-    <section class="settings-grid" aria-label="Global settings" data-i18n-aria-label="globalSettings">
-      <label class="setting-card"><input id="enabled" type="checkbox"> <span data-i18n="enableExtension">Enable the extension</span></label>
-      <label class="setting-card"><input id="titlePrefixEnabled" type="checkbox"> <span data-i18n="titlePrefix">Add a prefix to the tab title</span></label>
-      <label class="setting-card"><input id="reapplyOnChanges" type="checkbox"> <span data-i18n="reapplyOnChanges">Reapply when the application changes the favicon</span></label>
-      <label class="setting-card"><input id="debug" type="checkbox"> <span data-i18n="debugLogs">Debug logs in the console</span></label>
-      <div class="setting-card storage-setting">
-        <label for="storagePreference" data-i18n="storageMode">Configuration storage</label>
-        <select id="storagePreference">
-          <option value="local" data-i18n="storageLocal">Local to this browser</option>
-          <option value="sync" data-i18n="storageSync">Browser synchronization</option>
-        </select>
-        <small id="storageStatus" class="storage-status"></small>
+    <section class="settings-section" aria-labelledby="globalSettingsTitle">
+      <div class="section-heading section-heading-compact">
+        <h2 id="globalSettingsTitle" data-i18n="globalSettings">Global settings</h2>
+      </div>
+      <div class="settings-grid">
+        <label class="setting-card">
+          <input id="enabled" type="checkbox">
+          <span data-i18n="enableExtension">Enable the extension</span>
+        </label>
+        <label class="setting-card">
+          <input id="titlePrefixEnabled" type="checkbox">
+          <span data-i18n="titlePrefix">Add a prefix to the tab title</span>
+        </label>
+        <label class="setting-card">
+          <input id="reapplyOnChanges" type="checkbox">
+          <span data-i18n="reapplyOnChanges">Reapply when the application changes the favicon</span>
+        </label>
+        <label class="setting-card">
+          <input id="debug" type="checkbox">
+          <span data-i18n="debugLogs">Debug logs in the console</span>
+        </label>
+        <div class="setting-card storage-setting">
+          <label for="storagePreference" data-i18n="storageMode">Configuration storage</label>
+          <select id="storagePreference" aria-describedby="storageStatus">
+            <option value="local" data-i18n="storageLocal">Local to this browser</option>
+            <option value="sync" data-i18n="storageSync">Browser synchronization</option>
+          </select>
+          <small id="storageStatus" class="storage-status" role="status" data-i18n="storageLoading">Checking storage...</small>
+        </div>
       </div>
     </section>
 
@@ -47,66 +77,139 @@
       <div class="section-heading">
         <div>
           <p class="eyebrow" data-i18n="diagnostics">Diagnostics</p>
-          <h2 id="ruleTesterTitle" data-i18n="ruleTester">Test an URL</h2>
+          <h2 id="ruleTesterTitle" data-i18n="ruleTester">Test a URL</h2>
           <p data-i18n="ruleTesterDescription">See which rule wins, why it matches, and whether another rule conflicts.</p>
         </div>
       </div>
       <form id="ruleTesterForm" class="tester-form">
         <label class="grow-field">
           <span data-i18n="testUrl">URL to test</span>
-          <input id="testUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://staging.example.com/dashboard" data-i18n-placeholder="testUrlPlaceholder">
+          <input id="testUrl" type="url" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://staging.example.com/dashboard" data-i18n-placeholder="testUrlPlaceholder">
         </label>
-        <button id="useActiveTab" type="button" data-i18n="useActiveTab">Use active tab</button>
-        <button class="primary" type="submit" data-i18n="testNow">Test</button>
+        <button id="useActiveTab" type="button">
+          <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="14" rx="2"></rect>
+            <path d="M8 21h8M12 18v3"></path>
+          </svg>
+          <span data-i18n="useActiveTab">Use active tab</span>
+        </button>
+        <button class="primary" type="submit">
+          <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-4-4"></path>
+          </svg>
+          <span data-i18n="testNow">Test</span>
+        </button>
       </form>
-      <div id="testerSummary" class="tester-summary muted" role="status" aria-live="polite"></div>
+      <div id="testerSummary" class="tester-summary muted" role="status"></div>
       <div id="testerResults" class="tester-results"></div>
     </section>
 
-    <section class="groups-panel" aria-label="Environment groups" data-i18n-aria-label="environmentGroups">
-      <div id="groupTabs" class="group-tabs" role="tablist"></div>
-      <div class="group-actions">
-        <button id="addGroup" type="button" data-i18n="addGroup">Add group</button>
-        <button id="renameGroup" type="button" data-i18n="renameGroup">Rename</button>
-        <button id="deleteGroup" type="button" class="danger" data-i18n="deleteGroup">Delete</button>
+    <section class="groups-panel" aria-labelledby="environmentGroupsTitle">
+      <div class="groups-header">
+        <h2 id="environmentGroupsTitle" data-i18n="environmentGroups">Environment groups</h2>
+        <div class="group-actions">
+          <button id="addGroup" type="button">
+            <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+              <path d="M12 5v14M5 12h14"></path>
+            </svg>
+            <span data-i18n="addGroup">Add group</span>
+          </button>
+          <button id="renameGroup" type="button" data-i18n="renameGroup">Rename</button>
+          <button id="deleteGroup" type="button" class="danger" data-i18n="deleteGroup">Delete</button>
+        </div>
       </div>
+      <div id="groupTabs" class="group-tabs" role="group" aria-labelledby="environmentGroupsTitle"></div>
     </section>
 
-    <section class="toolbar">
-      <label class="grow-field visually-labelled">
-        <span class="sr-only" data-i18n="filterEnvironments">Filter environments...</span>
-        <input id="search" type="search" placeholder="Filter environments..." data-i18n-placeholder="filterEnvironments">
-      </label>
-      <div id="validationSummary" class="validation-summary" role="status"></div>
-      <button id="resetDefaults" type="button" class="danger" data-i18n="reset">Reset</button>
-    </section>
+    <section class="rules-workspace" aria-labelledby="rulesFilterTitle">
+      <div class="toolbar">
+        <div class="toolbar-search">
+          <h2 id="rulesFilterTitle" data-i18n="filterEnvironments">Filter environments...</h2>
+          <label class="search-field">
+            <span class="sr-only" data-i18n="filterEnvironments">Filter environments...</span>
+            <svg class="icon search-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-4-4"></path>
+            </svg>
+            <input id="search" type="search" autocomplete="off" spellcheck="false" placeholder="Filter environments..." data-i18n-placeholder="filterEnvironments">
+          </label>
+        </div>
+        <div class="toolbar-meta">
+          <div id="validationSummary" class="validation-summary" role="status"></div>
+          <button id="resetDefaults" type="button" class="danger" data-i18n="reset">Reset</button>
+        </div>
+      </div>
 
-    <section id="rulesContainer" class="rules-container" aria-live="polite"></section>
+      <section id="rulesContainer" class="rules-container" aria-labelledby="rulesFilterTitle" aria-busy="true">
+        <div class="loading-state" role="status">
+          <span class="spinner" aria-hidden="true"></span>
+          <span data-i18n="loading">Loading...</span>
+        </div>
+        <article class="rule-card rule-card-skeleton" aria-hidden="true">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton-grid">
+            <div class="skeleton skeleton-control"></div>
+            <div class="skeleton skeleton-control"></div>
+            <div class="skeleton skeleton-control"></div>
+          </div>
+          <div class="skeleton skeleton-area"></div>
+        </article>
+      </section>
+    </section>
 
     <template id="ruleTemplate">
       <article class="rule-card">
+        <h3 class="sr-only rule-card-heading"></h3>
         <div class="rule-card-header">
           <div class="rule-title">
             <span class="dot" aria-hidden="true"></span>
-            <input class="rule-name" aria-label="Environment name" data-i18n-aria-label="environmentName">
+            <label class="rule-name-field">
+              <span class="field-label" data-i18n="environmentName">Environment name</span>
+              <input class="rule-name" autocomplete="off">
+            </label>
           </div>
           <div class="rule-actions">
             <div class="order-actions" role="group" aria-label="Rule order" data-i18n-aria-label="ruleOrder">
-              <button class="move-up icon-button" type="button" title="Move up" data-i18n-title="moveUp" data-i18n-aria-label="moveUp">&#8593;</button>
-              <button class="move-down icon-button" type="button" title="Move down" data-i18n-title="moveDown" data-i18n-aria-label="moveDown">&#8595;</button>
+              <button class="move-up icon-button" type="button" title="Move up" data-i18n-title="moveUp" data-i18n-aria-label="moveUp">
+                <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                  <path d="m6 15 6-6 6 6"></path>
+                </svg>
+              </button>
+              <button class="move-down icon-button" type="button" title="Move down" data-i18n-title="moveDown" data-i18n-aria-label="moveDown">
+                <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                  <path d="m6 9 6 6 6-6"></path>
+                </svg>
+              </button>
             </div>
-            <label class="inline-check"><input class="rule-enabled" type="checkbox"> <span data-i18n="active">Active</span></label>
+            <label class="inline-check rule-enabled-control">
+              <input class="rule-enabled" type="checkbox">
+              <span data-i18n="active">Active</span>
+            </label>
             <button class="duplicate-rule" type="button" data-i18n="duplicate">Duplicate</button>
             <button class="remove-rule danger" type="button" data-i18n="remove">Remove</button>
           </div>
         </div>
 
         <div class="form-grid rule-main-grid">
-          <label><span data-i18n="shortLabel">Short label</span><input class="rule-label" maxlength="12" placeholder="STAGING"></label>
-          <label><span data-i18n="badgeColor">Badge color</span><input class="rule-color" type="color"></label>
-          <label><span data-i18n="priority">Priority</span><input class="rule-priority" type="number" min="-999" max="999" step="1"></label>
-          <label><span data-i18n="group">Group</span><select class="rule-group"></select></label>
-          <label><span data-i18n="matchType">Match type</span>
+          <label>
+            <span data-i18n="shortLabel">Short label</span>
+            <input class="rule-label" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="STAGING">
+          </label>
+          <label>
+            <span data-i18n="badgeColor">Badge color</span>
+            <input class="rule-color" type="color">
+          </label>
+          <label>
+            <span data-i18n="priority">Priority</span>
+            <input class="rule-priority" type="number" min="-999" max="999" step="1" inputmode="numeric">
+          </label>
+          <label>
+            <span data-i18n="group">Group</span>
+            <select class="rule-group"></select>
+          </label>
+          <label>
+            <span data-i18n="matchType">Match type</span>
             <select class="rule-match-type">
               <option value="contains" data-i18n="urlContains">URL contains</option>
               <option value="hostname" data-i18n="hostname">Domain / subdomain</option>
@@ -115,37 +218,48 @@
             </select>
           </label>
         </div>
-
         <p class="field-hint" data-i18n="priorityHint">The highest priority wins. The displayed order breaks ties.</p>
 
         <div class="patterns-grid">
-          <label><span data-i18n="urlPatterns">URL patterns, one per line</span>
-            <textarea class="rule-patterns" rows="4" placeholder="staging.example.com&#10;reviewapps.example.com"></textarea>
+          <label>
+            <span data-i18n="urlPatterns">URL patterns, one per line</span>
+            <textarea class="rule-patterns" rows="4" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="staging.example.com&#10;reviewapps.example.com"></textarea>
           </label>
-          <label><span data-i18n="exclusionPatterns">Exclusion patterns, one per line</span>
-            <textarea class="rule-exclusions" rows="4" placeholder="staging.example.com/health" data-i18n-placeholder="exclusionPatternsPlaceholder"></textarea>
+          <label>
+            <span data-i18n="exclusionPatterns">Exclusion patterns, one per line</span>
+            <textarea class="rule-exclusions" rows="4" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="staging.example.com/health" data-i18n-placeholder="exclusionPatternsPlaceholder"></textarea>
           </label>
         </div>
 
         <div class="favicon-row">
-          <label class="grow-field"><span data-i18n="favicon">Favicon</span>
-            <input class="rule-favicon" placeholder="icons/favicon-staging.ico, https://..., or data:image/..." data-i18n-placeholder="faviconPlaceholder">
+          <label class="grow-field">
+            <span data-i18n="favicon">Favicon</span>
+            <input class="rule-favicon" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="icons/favicon-staging.ico, https://..., or data:image/..." data-i18n-placeholder="faviconPlaceholder">
           </label>
           <button class="generate-favicon" type="button" data-i18n="generateFavicon">Generate</button>
-          <label class="import-button small"><span data-i18n="chooseFile">Choose a file</span><input class="rule-favicon-file" type="file" accept="image/*,.ico"></label>
+          <label class="import-button small">
+            <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+              <path d="M12 16V4m0 0 4 4m-4-4L8 8M5 20h14"></path>
+            </svg>
+            <span data-i18n="chooseFile">Choose a file</span>
+            <input class="rule-favicon-file" type="file" accept="image/*,.ico">
+          </label>
           <img class="favicon-preview" alt="Favicon preview" data-i18n-alt="faviconPreview">
         </div>
-
-        <label class="inline-check keep-original-row"><input class="rule-keep-original" type="checkbox"> <span data-i18n="keepOriginalFavicon">Keep the original favicon</span></label>
-        <div class="rule-validation" role="status"></div>
+        <label class="inline-check keep-original-row">
+          <input class="rule-keep-original" type="checkbox">
+          <span data-i18n="keepOriginalFavicon">Keep the original favicon</span>
+        </label>
+        <div class="rule-validation"></div>
       </article>
     </template>
   </main>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="toast" class="toast" role="status"></div>
   <script src="src/i18n.js"></script>
   <script src="config/defaults.js"></script>
   <script src="src/shared.js"></script>
   <script src="src/options.js"></script>
+  <script src="src/ui.js"></script>
 </body>
 </html>

@@ -6,9 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-No unreleased changes at this time.
+## [2.3.0] - 2026-07-19
 
-## [2.2.0] - 2026-07-17
+### Added
+
+- Semantic design token system covering color, typography, spacing, shape, elevation and motion.
+- Dynamic UI adapter (`src/ui.js`) for focus management, rule card a11y enhancement and live region scoping.
+- WCAG AA contrast compliance for text and feedback pairs in both light and dark themes.
+- `prefers-reduced-motion`, `forced-colors` and responsive layout support.
+- Tests for design token coverage, contrast ratios and keyboard accessibility.
+- Design system, UI audit and verification documentation.
+
+### Changed
+
+- Redesigned options page and popup with new design tokens and layout system.
+- Group filters now use pressed buttons instead of incomplete tab semantics.
+- Live regions scoped to concise status messages only.
+
+## [2.2.0] - 2026-07-18
 
 ### Added
 
@@ -55,7 +70,7 @@ No unreleased changes at this time.
 - Added automated checks that reject unsafe DOM sinks and dynamic code execution such as `innerHTML`, `insertAdjacentHTML`, `eval` and `new Function` in extension code.
 - Sanitized labels before embedding them in generated SVG favicons.
 
-## [2.1.0] - 2026-07-17
+## [2.1.0] - 2026-07-14
 
 ### Added
 
