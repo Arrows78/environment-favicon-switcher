@@ -4,11 +4,13 @@
   "description": "Browser extension that makes development environments immediately identifiable through favicons, badges and title prefixes.",
   "private": true,
   "scripts": {
+    "format": "prettier . --write --ignore-unknown",
+    "format:check": "prettier . --check --ignore-unknown",
     "vendor:icons": "node scripts/vendor-icons.mjs",
     "postinstall": "npm run vendor:icons",
     "lint": "node scripts/check.mjs && npm run release:check",
     "test": "node --test",
-    "validate": "npm run lint && npm test",
+    "validate": "npm run format:check && npm run lint && npm test",
     "package:extension": "npm run vendor:icons && node scripts/package.mjs",
     "build": "npm run validate && npm run package:extension",
     "release:check": "node scripts/release.mjs check",
@@ -17,12 +19,16 @@
     "release:notes": "node scripts/release.mjs notes",
     "release:publish-check": "node scripts/publish.mjs check",
     "package:verify": "node scripts/verify-package.mjs",
-    "pr:check": "node scripts/check-pr.mjs"
+    "pr:check": "node scripts/check-pr.mjs",
+    "prepare": "husky",
+    "check:push": "npm run build"
   },
   "engines": {
     "node": ">=22"
   },
   "devDependencies": {
-    "@phosphor-icons/web": "^2.1.2"
+    "@phosphor-icons/web": "^2.1.2",
+    "husky": "9.1.7",
+    "prettier": "3.9.5"
   }
 }

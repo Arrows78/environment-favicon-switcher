@@ -155,6 +155,7 @@
   $("#optionsButton").addEventListener("click", () => {
     const result = EnvFavicon.api?.runtime?.openOptionsPage?.();
     if (result?.catch) result.catch(() => {});
+    window.close();
   });
 
   $("#reapplyButton").addEventListener("click", async () => {
