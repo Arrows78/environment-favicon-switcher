@@ -111,3 +111,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Rule activation, editing, creation and deletion from the interface.
 - Initial configuration import and export.
 - Installation, configuration and usage documentation.
+
+[Unreleased]: https://github.com/Arrows78/environment-favicon-switcher/compare/2.3.0...HEAD
+[2.3.0]: https://github.com/Arrows78/environment-favicon-switcher/compare/2.2.0...2.3.0
+[2.2.0]: https://github.com/Arrows78/environment-favicon-switcher/compare/2.1.0...2.2.0
+[2.1.0]: https://github.com/Arrows78/environment-favicon-switcher/compare/2.0.0...2.1.0
+[2.0.0]: https://github.com/Arrows78/environment-favicon-switcher/releases/tag/2.0.0

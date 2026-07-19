@@ -48,13 +48,14 @@ More detail is available in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ```bash
 npm test                  # Node test suite
-npm run lint              # Static repository validation
+npm run lint              # Static repository and release metadata validation
 npm run validate          # Both of the above
 npm run package:extension # Deterministic runtime ZIP
 npm run build             # Complete release gate
+npm run release:plan      # Preview the next version and generated notes
 ```
 
-The static validator checks JavaScript and JSON syntax, manifest and HTML references, locale parity, translation usage, unsafe runtime sinks, default settings and repository file size.
+The static validator checks JavaScript and JSON syntax, manifest and HTML references, locale parity, translation usage, unsafe runtime sinks, default settings and repository file size. The release validator additionally keeps `manifest.json`, `package.json`, `package-lock.json` and the newest changelog entry on the same version.
 
 ## Commit messages
 
@@ -86,9 +87,14 @@ Use an imperative, lower-case subject without a trailing period. Add a body when
 
 ## Release process
 
-1. Update `manifest.json` and `package.json` to the same version.
-2. Update `CHANGELOG.md`.
-3. Run `npm ci && npm run build`.
-4. Verify the SHA-256 printed by the package command and inspect the ZIP contents.
-5. Test the packaged archive as an unpacked extension after extraction.
-6. Create a signed tag from the release commit.
+Releases use a reviewable release pull request rather than direct version commits.
+
+1. Merge focused changes to `main` with Conventional Commit titles. A breaking change uses `!` or a `BREAKING CHANGE:` footer.
+2. The **Release PR** workflow scans first-parent history from the current version tag and infers the next version: `fix`/`perf`/`security` produce a patch, `feat` produces a minor release and breaking changes produce a major release.
+3. The workflow updates `manifest.json`, `package.json`, both version fields in `package-lock.json`, and `CHANGELOG.md`. The changelog keeps a blank `Unreleased` section and the Keep a Changelog category order.
+4. Review the generated release pull request, its changelog wording and the complete build result. Use the workflow's optional `release_as` input only for an intentional override.
+5. Merge the release pull request once it is ready. Do not edit generated version files independently.
+
+The initial `historyBaseline` in `release.config.json` is a one-time migration guard. Version `2.3.0` was recorded on two sibling commits: the tag and the current `main` commit contain the same UI release with a small metadata difference. The baseline prevents that already documented change from being released again, then removes itself from the first generated release pull request.
+
+The workflow uses the dedicated `automation/release` branch. Its default GitHub token is sufficient to maintain the pull request and the workflow runs the full release gate itself. Repositories whose branch rules require checks triggered by the pull request can provide a fine-grained `RELEASE_PR_TOKEN` secret with repository contents and pull-request write access.

@@ -4,11 +4,15 @@
   "description": "Browser extension that makes development environments immediately identifiable through favicons, badges and title prefixes.",
   "private": true,
   "scripts": {
-    "lint": "node scripts/check.mjs",
+    "lint": "node scripts/check.mjs && npm run release:check",
     "test": "node --test",
     "validate": "npm run lint && npm test",
     "package:extension": "node scripts/package.mjs",
-    "build": "npm run validate && npm run package:extension"
+    "build": "npm run validate && npm run package:extension",
+    "release:check": "node scripts/release.mjs check",
+    "release:plan": "node scripts/release.mjs plan",
+    "release:prepare": "node scripts/release.mjs prepare",
+    "release:notes": "node scripts/release.mjs notes"
   },
   "engines": {
     "node": ">=20"
