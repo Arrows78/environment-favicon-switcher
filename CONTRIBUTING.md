@@ -4,7 +4,7 @@ Thank you for improving Environment Favicon Switcher. Keep changes focused, test
 
 ## Prerequisites
 
-- Node.js 20 or newer.
+- Node.js 22 or newer. Node.js 24 is the preferred local release.
 - npm, included with Node.js.
 - A current Chromium-family browser for unpacked-extension testing.
 - Firefox 109 or newer for Firefox-specific testing when behavior is affected.
@@ -51,6 +51,7 @@ npm test                  # Node test suite
 npm run lint              # Static repository and release metadata validation
 npm run validate          # Both of the above
 npm run package:extension # Deterministic runtime ZIP
+npm run package:verify    # Build twice, compare bytes and write SHA256SUMS
 npm run build             # Complete release gate
 npm run release:plan      # Preview the next version and generated notes
 ```

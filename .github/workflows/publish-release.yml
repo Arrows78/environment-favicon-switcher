@@ -59,32 +59,7 @@ jobs:
       - name: Build the extension twice and compare archives
         id: package
         if: steps.candidate.outputs.release == 'true' && steps.existing.outputs.release != 'true'
-        shell: bash
-        run: |
-          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
-
-          rm -rf dist
-          npm run package:extension
-          first_archive="$(find dist -maxdepth 1 -type f -name '*.zip' -print -quit)"
-          test -n "$first_archive"
-          cp "$first_archive" "$RUNNER_TEMP/first-extension.zip"
-
-          rm -rf dist
-          npm run package:extension
-          archive="$(find dist -maxdepth 1 -type f -name '*.zip' -print -quit)"
-          test -n "$archive"
-          cmp "$RUNNER_TEMP/first-extension.zip" "$archive"
-
-          archive_name="$(basename "$archive")"
-          (
-            cd dist
-            sha256sum "$archive_name" > SHA256SUMS
-          )
-
-          echo "archive=$archive" >> "$GITHUB_OUTPUT"
-          echo "archive_name=$archive_name" >> "$GITHUB_OUTPUT"
-          echo "Reproducible archive: $archive_name" >> "$GITHUB_STEP_SUMMARY"
-          cat dist/SHA256SUMS >> "$GITHUB_STEP_SUMMARY"
+        run: npm run package:verify
 
       - name: Upload workflow artifact
         if: steps.candidate.outputs.release == 'true' && steps.existing.outputs.release != 'true'

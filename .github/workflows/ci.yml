@@ -3,13 +3,27 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
+    name: Validate on Node.js ${{ matrix.node }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - 22
+          - 24
+          - 26
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -17,7 +31,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
           cache: npm
 
       - name: Install project metadata
@@ -26,12 +40,35 @@ jobs:
       - name: Validate source and run tests
         run: npm run validate
 
-      - name: Package extension
-        run: npm run package:extension
+  package:
+    name: Verify reproducible extension package
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Upload extension archive
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install project metadata
+        run: npm ci
+
+      - name: Build twice and compare archives
+        run: npm run package:verify
+
+      - name: Upload extension archive and checksum
         uses: actions/upload-artifact@v4
         with:
-          name: environment-favicon-switcher
-          path: dist/*.zip
+          name: environment-favicon-switcher-${{ github.sha }}
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS
           if-no-files-found: error
+          retention-days: 14

@@ -13,9 +13,10 @@
     "release:plan": "node scripts/release.mjs plan",
     "release:prepare": "node scripts/release.mjs prepare",
     "release:notes": "node scripts/release.mjs notes",
-    "release:publish-check": "node scripts/publish.mjs check"
+    "release:publish-check": "node scripts/publish.mjs check",
+    "package:verify": "node scripts/verify-package.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   }
 }
