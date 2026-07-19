@@ -6,7 +6,10 @@ const vm = require("node:vm");
 const { webcrypto } = require("node:crypto");
 
 const ROOT = path.resolve(__dirname, "../..");
-const DEFAULTS_SOURCE = fs.readFileSync(path.join(ROOT, "config/defaults.js"), "utf8");
+const DEFAULTS_SOURCE = fs.readFileSync(
+  path.join(ROOT, "config/defaults.js"),
+  "utf8",
+);
 const SHARED_SOURCE = fs.readFileSync(path.join(ROOT, "src/shared.js"), "utf8");
 
 function clone(value) {
@@ -18,7 +21,8 @@ function createMemoryChrome({ sync = true } = {}) {
   const changeListeners = [];
   const runtime = {
     lastError: null,
-    getURL: (resourcePath) => `chrome-extension://test/${String(resourcePath).replace(/^\//, "")}`
+    getURL: (resourcePath) =>
+      `chrome-extension://test/${String(resourcePath).replace(/^\//, "")}`,
   };
 
   function createArea(areaName) {
@@ -39,7 +43,10 @@ function createMemoryChrome({ sync = true } = {}) {
           });
         } else {
           Object.entries(keys).forEach(([key, fallback]) => {
-            result[key] = Object.prototype.hasOwnProperty.call(stores[areaName], key)
+            result[key] = Object.prototype.hasOwnProperty.call(
+              stores[areaName],
+              key,
+            )
               ? clone(stores[areaName][key])
               : clone(fallback);
           });
@@ -51,7 +58,7 @@ function createMemoryChrome({ sync = true } = {}) {
         Object.entries(values).forEach(([key, value]) => {
           changes[key] = {
             oldValue: clone(stores[areaName][key]),
-            newValue: clone(value)
+            newValue: clone(value),
           };
           stores[areaName][key] = clone(value);
         });
@@ -66,7 +73,7 @@ function createMemoryChrome({ sync = true } = {}) {
         list.forEach((key) => {
           changes[key] = {
             oldValue: clone(stores[areaName][key]),
-            newValue: undefined
+            newValue: undefined,
           };
           delete stores[areaName][key];
         });
@@ -74,7 +81,7 @@ function createMemoryChrome({ sync = true } = {}) {
           callback();
           changeListeners.forEach((listener) => listener(changes, areaName));
         });
-      }
+      },
     };
   }
 
@@ -83,21 +90,24 @@ function createMemoryChrome({ sync = true } = {}) {
     onChanged: {
       addListener(listener) {
         changeListeners.push(listener);
-      }
-    }
+      },
+    },
   };
   if (sync) storage.sync = createArea("sync");
 
   return {
     chrome: { runtime, storage },
     stores,
-    changeListeners
+    changeListeners,
   };
 }
 
 function loadCore(options = {}) {
   const memory = options.chrome
-    ? { chrome: options.chrome, stores: options.stores || { local: {}, sync: {} } }
+    ? {
+        chrome: options.chrome,
+        stores: options.stores || { local: {}, sync: {} },
+      }
     : createMemoryChrome(options);
   const context = {
     URL,
@@ -109,7 +119,7 @@ function loadCore(options = {}) {
     setTimeout,
     clearTimeout,
     queueMicrotask,
-    chrome: memory.chrome
+    chrome: memory.chrome,
   };
   context.globalThis = context;
   vm.createContext(context);
@@ -121,7 +131,7 @@ function loadCore(options = {}) {
     DEFAULT_SETTINGS: context.DEFAULT_SETTINGS,
     stores: memory.stores,
     chrome: memory.chrome,
-    context
+    context,
   };
 }
 
@@ -133,5 +143,5 @@ module.exports = {
   ROOT,
   createMemoryChrome,
   loadCore,
-  plain
+  plain,
 };

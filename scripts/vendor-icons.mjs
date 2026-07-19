@@ -1,10 +1,4 @@
-import {
-  copyFile,
-  mkdir,
-  readFile,
-  rm,
-  writeFile,
-} from "node:fs/promises";
+import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -55,17 +49,11 @@ const localCss = sourceCss.replace(
 );
 
 if (localCss === sourceCss) {
-  throw new Error(
-    "La déclaration @font-face de Phosphor n'a pas été trouvée.",
-  );
+  throw new Error("La déclaration @font-face de Phosphor n'a pas été trouvée.");
 }
 
 await Promise.all([
-  writeFile(
-    path.join(destinationDirectory, "style.css"),
-    localCss,
-    "utf8",
-  ),
+  writeFile(path.join(destinationDirectory, "style.css"), localCss, "utf8"),
 
   copyFile(
     path.join(sourceDirectory, "Phosphor.woff2"),

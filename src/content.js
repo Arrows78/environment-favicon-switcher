@@ -22,7 +22,8 @@
   let lastStatusSignature = "";
 
   function debug(...values) {
-    if (currentSettings?.debug) console.info("[Environment Favicon Switcher]", ...values);
+    if (currentSettings?.debug)
+      console.info("[Environment Favicon Switcher]", ...values);
   }
 
   function managedFavicon() {
@@ -35,9 +36,18 @@
 
   function faviconType(href) {
     const normalized = String(href || "").toLowerCase();
-    if (normalized.startsWith("data:image/svg+xml") || normalized.endsWith(".svg")) return "image/svg+xml";
-    if (normalized.startsWith("data:image/png") || normalized.endsWith(".png")) return "image/png";
-    if (normalized.startsWith("data:image/jpeg") || /\.jpe?g(?:$|[?#])/.test(normalized)) return "image/jpeg";
+    if (
+      normalized.startsWith("data:image/svg+xml") ||
+      normalized.endsWith(".svg")
+    )
+      return "image/svg+xml";
+    if (normalized.startsWith("data:image/png") || normalized.endsWith(".png"))
+      return "image/png";
+    if (
+      normalized.startsWith("data:image/jpeg") ||
+      /\.jpe?g(?:$|[?#])/.test(normalized)
+    )
+      return "image/jpeg";
     return "image/x-icon";
   }
 
@@ -78,9 +88,10 @@
 
   function updateTitle(rule, settings) {
     captureApplicationTitle();
-    const nextPrefix = settings.titlePrefixEnabled && rule
-      ? `[${rule.label || rule.name}] `
-      : "";
+    const nextPrefix =
+      settings.titlePrefixEnabled && rule
+        ? `[${rule.label || rule.name}] `
+        : "";
     currentPrefix = nextPrefix;
     const desiredTitle = `${nextPrefix}${baseTitle}`;
 
@@ -99,7 +110,7 @@
       payload.rule?.priority || 0,
       payload.matchedBy || null,
       payload.matchCount || 0,
-      Boolean(payload.hasConflict)
+      Boolean(payload.hasConflict),
     ]);
   }
 
@@ -112,7 +123,7 @@
       rule: diagnosis.winner,
       matchedBy: winnerEvaluation?.includedBy || null,
       matchCount: diagnosis.matches.length,
-      hasConflict: diagnosis.hasConflict
+      hasConflict: diagnosis.hasConflict,
     };
     const signature = statusSignature(payload);
     if (signature === lastStatusSignature) return;
@@ -126,7 +137,10 @@
     try {
       settings = await EnvFavicon.getSettings();
     } catch (error) {
-      console.error("[Environment Favicon Switcher] Unable to load settings", error);
+      console.error(
+        "[Environment Favicon Switcher] Unable to load settings",
+        error,
+      );
       return;
     }
     if (revision !== applyRevision) return;
@@ -159,25 +173,38 @@
   }
 
   function mutationNeedsFaviconReapply(mutation) {
-    if (!currentSettings?.reapplyOnChanges || !currentRule || currentRule.keepOriginalFavicon) return false;
+    if (
+      !currentSettings?.reapplyOnChanges ||
+      !currentRule ||
+      currentRule.keepOriginalFavicon
+    )
+      return false;
     if (mutation.target?.matches?.(MANAGED_FAVICON_SELECTOR)) return false;
-    if (mutation.type === "attributes") return mutation.target?.matches?.(ICON_SELECTOR) || false;
-    return Array.from(mutation.addedNodes || []).some(nodeContainsRelevantElement)
-      || Array.from(mutation.removedNodes || []).some(nodeContainsRelevantElement);
+    if (mutation.type === "attributes")
+      return mutation.target?.matches?.(ICON_SELECTOR) || false;
+    return (
+      Array.from(mutation.addedNodes || []).some(nodeContainsRelevantElement) ||
+      Array.from(mutation.removedNodes || []).some(nodeContainsRelevantElement)
+    );
   }
 
   function mutationChangesApplicationTitle(mutation) {
-    const titleElement = mutation.target?.nodeType === Node.TEXT_NODE
-      ? mutation.target.parentElement
-      : mutation.target;
-    if (titleElement?.matches?.("title")) return document.title !== managedTitle;
-    return Array.from(mutation.addedNodes || []).some((node) =>
-      node.nodeType === Node.ELEMENT_NODE && (node.matches?.("title") || node.querySelector?.("title"))
+    const titleElement =
+      mutation.target?.nodeType === Node.TEXT_NODE
+        ? mutation.target.parentElement
+        : mutation.target;
+    if (titleElement?.matches?.("title"))
+      return document.title !== managedTitle;
+    return Array.from(mutation.addedNodes || []).some(
+      (node) =>
+        node.nodeType === Node.ELEMENT_NODE &&
+        (node.matches?.("title") || node.querySelector?.("title")),
     );
   }
 
   function configureMutationObserver(settings) {
-    const shouldObserve = settings.reapplyOnChanges || settings.titlePrefixEnabled;
+    const shouldObserve =
+      settings.reapplyOnChanges || settings.titlePrefixEnabled;
     if (!shouldObserve) {
       mutationObserver?.disconnect();
       mutationObserver = null;
@@ -193,31 +220,36 @@
         return;
       }
 
-      const titleChanged = currentSettings?.titlePrefixEnabled
-        && mutations.some(mutationChangesApplicationTitle);
+      const titleChanged =
+        currentSettings?.titlePrefixEnabled &&
+        mutations.some(mutationChangesApplicationTitle);
       const faviconChanged = mutations.some(mutationNeedsFaviconReapply);
       if (titleChanged) captureApplicationTitle();
-      if (titleChanged || faviconChanged) scheduleApply(titleChanged ? "title mutation" : "favicon mutation");
+      if (titleChanged || faviconChanged)
+        scheduleApply(titleChanged ? "title mutation" : "favicon mutation");
     });
     mutationObserver.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["href", "rel", "type", "sizes"],
       characterData: true,
       childList: true,
-      subtree: true
+      subtree: true,
     });
   }
 
   function patchHistoryMethod(method) {
     const original = history[method];
-    if (typeof original !== "function" || original.__environmentFaviconPatched) return;
+    if (typeof original !== "function" || original.__environmentFaviconPatched)
+      return;
     function patchedHistoryMethod(...args) {
       const result = original.apply(this, args);
       lastUrl = window.location.href;
       scheduleApply(`history:${method}`, 20);
       return result;
     }
-    Object.defineProperty(patchedHistoryMethod, "__environmentFaviconPatched", { value: true });
+    Object.defineProperty(patchedHistoryMethod, "__environmentFaviconPatched", {
+      value: true,
+    });
     try {
       history[method] = patchedHistoryMethod;
     } catch (_) {}
@@ -225,24 +257,34 @@
 
   async function handleStorageChanges(changes, areaName) {
     if (areaName === "sync" && changes?.[EnvFavicon.SYNC_PREFERENCE_KEY]) {
-      const synchronized = changes[EnvFavicon.SYNC_PREFERENCE_KEY].newValue === true;
-      await EnvFavicon.setStorage({
-        [EnvFavicon.STORAGE_PREFERENCE_KEY]: synchronized ? "sync" : "local"
-      }, "local").catch(() => {});
+      const synchronized =
+        changes[EnvFavicon.SYNC_PREFERENCE_KEY].newValue === true;
+      await EnvFavicon.setStorage(
+        {
+          [EnvFavicon.STORAGE_PREFERENCE_KEY]: synchronized ? "sync" : "local",
+        },
+        "local",
+      ).catch(() => {});
     }
 
-    const localChange = areaName === "local"
-      && (changes.settings || changes[EnvFavicon.STORAGE_PREFERENCE_KEY]);
-    const syncChange = areaName === "sync"
-      && Object.keys(changes).some((key) =>
-        key === EnvFavicon.SYNC_MANIFEST_KEY
-        || key === EnvFavicon.SYNC_PREFERENCE_KEY
-        || key.startsWith(EnvFavicon.SYNC_CHUNK_PREFIX)
+    const localChange =
+      areaName === "local" &&
+      (changes.settings || changes[EnvFavicon.STORAGE_PREFERENCE_KEY]);
+    const syncChange =
+      areaName === "sync" &&
+      Object.keys(changes).some(
+        (key) =>
+          key === EnvFavicon.SYNC_MANIFEST_KEY ||
+          key === EnvFavicon.SYNC_PREFERENCE_KEY ||
+          key.startsWith(EnvFavicon.SYNC_CHUNK_PREFIX),
       );
     if (!localChange && !syncChange) return;
 
     clearTimeout(storageTimer);
-    storageTimer = setTimeout(() => scheduleApply(`storage:${areaName}`, 20), syncChange ? 260 : 40);
+    storageTimer = setTimeout(
+      () => scheduleApply(`storage:${areaName}`, 20),
+      syncChange ? 260 : 40,
+    );
   }
 
   patchHistoryMethod("pushState");
@@ -255,7 +297,9 @@
     lastUrl = window.location.href;
     scheduleApply("hashchange", 20);
   });
-  window.navigation?.addEventListener?.("navigate", () => scheduleApply("navigation", 20));
+  window.navigation?.addEventListener?.("navigate", () =>
+    scheduleApply("navigation", 20),
+  );
 
   const urlWatchTimer = window.setInterval(() => {
     if (window.location.href === lastUrl) return;
@@ -267,27 +311,40 @@
     void handleStorageChanges(changes, areaName);
   });
 
-  extensionApi?.runtime?.onMessage?.addListener((message, _sender, sendResponse) => {
-    if (message?.type === "ENV_FAVICON_GET_STATUS") {
-      EnvFavicon.getSettings().then((settings) => {
-        const diagnosis = EnvFavicon.diagnoseUrl(window.location.href, settings);
-        sendResponse({
-          rule: diagnosis.winner,
-          url: window.location.href,
-          enabled: diagnosis.enabled,
-          matchedBy: diagnosis.matches[0]?.includedBy || null,
-          matchCount: diagnosis.matches.length,
-          hasConflict: diagnosis.hasConflict
-        });
-      }).catch(() => sendResponse({ rule: null, url: window.location.href, enabled: false }));
-      return true;
-    }
-    if (message?.type === "ENV_FAVICON_REAPPLY") {
-      applyForCurrentUrl("manual").then(() => sendResponse({ ok: true }));
-      return true;
-    }
-    return false;
-  });
+  extensionApi?.runtime?.onMessage?.addListener(
+    (message, _sender, sendResponse) => {
+      if (message?.type === "ENV_FAVICON_GET_STATUS") {
+        EnvFavicon.getSettings()
+          .then((settings) => {
+            const diagnosis = EnvFavicon.diagnoseUrl(
+              window.location.href,
+              settings,
+            );
+            sendResponse({
+              rule: diagnosis.winner,
+              url: window.location.href,
+              enabled: diagnosis.enabled,
+              matchedBy: diagnosis.matches[0]?.includedBy || null,
+              matchCount: diagnosis.matches.length,
+              hasConflict: diagnosis.hasConflict,
+            });
+          })
+          .catch(() =>
+            sendResponse({
+              rule: null,
+              url: window.location.href,
+              enabled: false,
+            }),
+          );
+        return true;
+      }
+      if (message?.type === "ENV_FAVICON_REAPPLY") {
+        applyForCurrentUrl("manual").then(() => sendResponse({ ok: true }));
+        return true;
+      }
+      return false;
+    },
+  );
 
   void applyForCurrentUrl("init");
 })();

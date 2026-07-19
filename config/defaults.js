@@ -5,9 +5,7 @@ globalThis.DEFAULT_SETTINGS = {
   titlePrefixEnabled: false,
   reapplyOnChanges: true,
   debug: false,
-  groups: [
-    { id: "default", name: "Default", color: "#64748B" }
-  ],
+  groups: [{ id: "default", name: "Default", color: "#64748B" }],
   rules: [
     {
       groupId: "default",
@@ -21,7 +19,7 @@ globalThis.DEFAULT_SETTINGS = {
       patterns: ["localhost", "127.0.0.1"],
       excludePatterns: [],
       favicon: "icons/favicon-local.png",
-      keepOriginalFavicon: false
+      keepOriginalFavicon: false,
     },
     {
       groupId: "default",
@@ -35,7 +33,7 @@ globalThis.DEFAULT_SETTINGS = {
       patterns: ["review.", "reviewapp"],
       excludePatterns: [],
       favicon: "icons/favicon-review.png",
-      keepOriginalFavicon: false
+      keepOriginalFavicon: false,
     },
     {
       groupId: "default",
@@ -49,7 +47,7 @@ globalThis.DEFAULT_SETTINGS = {
       patterns: ["sandbox.", "integration."],
       excludePatterns: [],
       favicon: "icons/favicon-sandbox.png",
-      keepOriginalFavicon: false
+      keepOriginalFavicon: false,
     },
     {
       groupId: "default",
@@ -63,7 +61,7 @@ globalThis.DEFAULT_SETTINGS = {
       patterns: ["staging.", "uat."],
       excludePatterns: [],
       favicon: "icons/favicon-staging.png",
-      keepOriginalFavicon: false
+      keepOriginalFavicon: false,
     },
     {
       groupId: "default",
@@ -77,7 +75,7 @@ globalThis.DEFAULT_SETTINGS = {
       patterns: ["myapp.com"],
       excludePatterns: [],
       favicon: "",
-      keepOriginalFavicon: true
-    }
-  ]
+      keepOriginalFavicon: true,
+    },
+  ],
 };

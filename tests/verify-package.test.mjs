@@ -8,7 +8,7 @@ import {
   compareArchiveFiles,
   findSingleArchive,
   sha256,
-  writeChecksumFile
+  writeChecksumFile,
 } from "../scripts/verify-package.mjs";
 
 test("accepts byte-identical archives and returns their digest", () => {
@@ -47,7 +47,10 @@ test("requires exactly one package archive", () => {
   assert.throws(() => findSingleArchive(join(root, "dist")), /found 0/);
 
   writeFileSync(join(root, "dist", "one.zip"), "one");
-  assert.equal(findSingleArchive(join(root, "dist")), join(root, "dist", "one.zip"));
+  assert.equal(
+    findSingleArchive(join(root, "dist")),
+    join(root, "dist", "one.zip"),
+  );
 
   writeFileSync(join(root, "dist", "two.zip"), "two");
   assert.throws(() => findSingleArchive(join(root, "dist")), /found 2/);
@@ -57,22 +60,29 @@ test("runs the package command twice with one stable source epoch", () => {
   const root = mkdtempSync(join(tmpdir(), "favicon-package-project-"));
   writeFileSync(
     join(root, "package.json"),
-    `${JSON.stringify({
-      name: "package-fixture",
-      version: "1.0.0",
-      private: true,
-      scripts: { "package:extension": "node package.mjs" }
-    }, null, 2)}\n`
+    `${JSON.stringify(
+      {
+        name: "package-fixture",
+        version: "1.0.0",
+        private: true,
+        scripts: { "package:extension": "node package.mjs" },
+      },
+      null,
+      2,
+    )}\n`,
   );
   writeFileSync(
     join(root, "package.mjs"),
-    `import { mkdirSync, writeFileSync } from "node:fs";\nmkdirSync("dist", { recursive: true });\nwriteFileSync("dist/fixture.zip", \`epoch=\${process.env.SOURCE_DATE_EPOCH}\\n\`);\n`
+    `import { mkdirSync, writeFileSync } from "node:fs";\nmkdirSync("dist", { recursive: true });\nwriteFileSync("dist/fixture.zip", \`epoch=\${process.env.SOURCE_DATE_EPOCH}\\n\`);\n`,
   );
 
   return import("../scripts/verify-package.mjs").then(({ verifyPackage }) => {
     const result = verifyPackage(root, "1704067200");
     assert.equal(result.archive, "dist/fixture.zip");
     assert.equal(result.sourceDateEpoch, "1704067200");
-    assert.match(readFileSync(join(root, "dist", "SHA256SUMS"), "utf8"), /^[a-f0-9]{64}  fixture\.zip\n$/);
+    assert.match(
+      readFileSync(join(root, "dist", "SHA256SUMS"), "utf8"),
+      /^[a-f0-9]{64}  fixture\.zip\n$/,
+    );
   });
 });

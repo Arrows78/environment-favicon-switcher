@@ -4,10 +4,10 @@
 
 Security fixes are developed against the latest maintained version of the extension. Older unpacked snapshots may not receive backports.
 
-| Version | Supported |
-| --- | --- |
-| 2.2.x | Yes |
-| 2.1.x and earlier | No |
+| Version           | Supported |
+| ----------------- | --------- |
+| 2.2.x             | Yes       |
+| 2.1.x and earlier | No        |
 
 ## Reporting a vulnerability
 

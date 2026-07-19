@@ -53,7 +53,7 @@
       "invalid-pattern": "issueInvalidPattern",
       "regex-too-long": "issueRegexTooLong",
       "missing-favicon": "issueMissingFavicon",
-      "invalid-url": "issueInvalidUrl"
+      "invalid-url": "issueInvalidUrl",
     };
     const key = keys[issue.code] || "issueUnknown";
     return issue.pattern ? t(key, issue.pattern) : t(key);
@@ -77,9 +77,15 @@
       return saved;
     } catch (error) {
       console.error("Unable to save configuration", error);
-      storageStatus = await EnvFavicon.getStorageStatus(snapshot).catch(() => storageStatus);
+      storageStatus = await EnvFavicon.getStorageStatus(snapshot).catch(
+        () => storageStatus,
+      );
       render();
-      toast(error?.code === "sync-fallback-local" ? t("syncFallbackLocal") : t("saveFailed"));
+      toast(
+        error?.code === "sync-fallback-local"
+          ? t("syncFallbackLocal")
+          : t("saveFailed"),
+      );
       return null;
     }
   }
@@ -98,14 +104,18 @@
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result || ""));
-      reader.onerror = () => reject(reader.error || new Error("Unable to read the file."));
+      reader.onerror = () =>
+        reject(reader.error || new Error("Unable to read the file."));
       reader.readAsDataURL(file);
     });
   }
 
   function groupName(groupId) {
     if (!groupId) return t("ungrouped");
-    return settings.groups.find((group) => group.id === groupId)?.name || t("ungrouped");
+    return (
+      settings.groups.find((group) => group.id === groupId)?.name ||
+      t("ungrouped")
+    );
   }
 
   function ruleMatchesActiveGroup(rule) {
@@ -121,8 +131,10 @@
         rule.label,
         groupName(rule.groupId),
         ...(rule.patterns || []),
-        ...(rule.excludePatterns || [])
-      ].join(" ").toLowerCase();
+        ...(rule.excludePatterns || []),
+      ]
+        .join(" ")
+        .toLowerCase();
       return ruleMatchesActiveGroup(rule) && searchable.includes(searchValue);
     });
   }
@@ -134,7 +146,11 @@
   function storageErrorMessage(code) {
     if (code === "sync-too-large") return t("syncTooLarge");
     if (code === "sync-unavailable") return t("syncUnavailable");
-    if (code === "sync-corrupt" || code === "sync-format" || code === "sync-missing") {
+    if (
+      code === "sync-corrupt" ||
+      code === "sync-format" ||
+      code === "sync-missing"
+    ) {
       return t("syncDataInvalid");
     }
     return t("syncFallbackLocal");
@@ -150,7 +166,9 @@
     }
 
     select.value = storageStatus.preference;
-    const syncOption = Array.from(select.options).find((option) => option.value === "sync");
+    const syncOption = Array.from(select.options).find(
+      (option) => option.value === "sync",
+    );
     if (syncOption) syncOption.disabled = !storageStatus.syncAvailable;
 
     if (!storageStatus.syncAvailable) {
@@ -165,7 +183,10 @@
     }
     if (storageStatus.preference === "sync") {
       node.className = "storage-status success";
-      node.textContent = t("storageSyncActive", formatKilobytes(storageStatus.bytes));
+      node.textContent = t(
+        "storageSyncActive",
+        formatKilobytes(storageStatus.bytes),
+      );
       return;
     }
     node.className = "storage-status";
@@ -179,10 +200,16 @@
       await EnvFavicon.setStoragePreference(preference, settings);
       storageStatus = await EnvFavicon.getStorageStatus(settings);
       renderStorageStatus();
-      toast(preference === "sync" ? t("storageSyncEnabled") : t("storageLocalEnabled"));
+      toast(
+        preference === "sync"
+          ? t("storageSyncEnabled")
+          : t("storageLocalEnabled"),
+      );
     } catch (error) {
       console.error("Unable to change storage preference", error);
-      storageStatus = await EnvFavicon.getStorageStatus(settings).catch(() => storageStatus);
+      storageStatus = await EnvFavicon.getStorageStatus(settings).catch(
+        () => storageStatus,
+      );
       renderStorageStatus();
       toast(storageErrorMessage(error?.code));
     } finally {
@@ -196,7 +223,7 @@
     const definitions = [
       { id: ALL_GROUPS, name: t("allGroups"), color: "#64748B" },
       ...settings.groups,
-      { id: UNGROUPED, name: t("ungrouped"), color: "#94A3B8" }
+      { id: UNGROUPED, name: t("ungrouped"), color: "#94A3B8" },
     ];
 
     definitions.forEach((group) => {
@@ -247,13 +274,22 @@
 
   function moveRule(rule, direction) {
     const visible = filteredRules();
-    const visibleIndex = visible.findIndex((candidate) => candidate.id === rule.id);
+    const visibleIndex = visible.findIndex(
+      (candidate) => candidate.id === rule.id,
+    );
     const neighbor = visible[visibleIndex + direction];
     if (!neighbor) return;
 
-    const ruleIndex = settings.rules.findIndex((candidate) => candidate.id === rule.id);
-    const neighborIndex = settings.rules.findIndex((candidate) => candidate.id === neighbor.id);
-    [settings.rules[ruleIndex], settings.rules[neighborIndex]] = [settings.rules[neighborIndex], settings.rules[ruleIndex]];
+    const ruleIndex = settings.rules.findIndex(
+      (candidate) => candidate.id === rule.id,
+    );
+    const neighborIndex = settings.rules.findIndex(
+      (candidate) => candidate.id === neighbor.id,
+    );
+    [settings.rules[ruleIndex], settings.rules[neighborIndex]] = [
+      settings.rules[neighborIndex],
+      settings.rules[ruleIndex],
+    ];
     void persist(t("ruleMoved"));
   }
 
@@ -271,7 +307,9 @@
     node.className = "rule-validation invalid";
     const title = createElement("strong", "", t("validationIssues"));
     const list = createElement("ul");
-    issues.forEach((issue) => list.appendChild(createElement("li", "", formatIssue(issue))));
+    issues.forEach((issue) =>
+      list.appendChild(createElement("li", "", formatIssue(issue))),
+    );
     node.append(title, list);
   }
 
@@ -281,7 +319,9 @@
     EnvI18n.localizeDocument(card);
     card.dataset.id = rule.id;
 
-    const ruleIndex = settings.rules.findIndex((candidate) => candidate.id === rule.id);
+    const ruleIndex = settings.rules.findIndex(
+      (candidate) => candidate.id === rule.id,
+    );
     $(".dot", card).style.backgroundColor = rule.color;
     $(".rule-name", card).value = rule.name;
     $(".rule-enabled", card).checked = rule.enabled;
@@ -297,17 +337,22 @@
 
     const preview = $(".favicon-preview", card);
     preview.src = faviconPreviewUrl(rule);
-    preview.addEventListener("error", () => {
-      preview.src = "icons/icon-48.png";
-      preview.classList.add("preview-error");
-    }, { once: true });
+    preview.addEventListener(
+      "error",
+      () => {
+        preview.src = "icons/icon-48.png";
+        preview.classList.add("preview-error");
+      },
+      { once: true },
+    );
 
     const moveUp = $(".move-up", card);
     const moveDown = $(".move-down", card);
     moveUp.disabled = visibleIndex === 0;
     moveDown.disabled = visibleIndex === visibleCount - 1;
 
-    const bind = (selector, event, handler) => $(selector, card).addEventListener(event, handler);
+    const bind = (selector, event, handler) =>
+      $(selector, card).addEventListener(event, handler);
     bind(".rule-name", "change", (event) => {
       rule.name = event.target.value.trim() || t("untitled");
       void persist();
@@ -377,7 +422,10 @@
       }
     });
     bind(".generate-favicon", "click", () => {
-      rule.favicon = EnvFavicon.createGeneratedFavicon(rule.label || rule.name, rule.color);
+      rule.favicon = EnvFavicon.createGeneratedFavicon(
+        rule.label || rule.name,
+        rule.color,
+      );
       rule.keepOriginalFavicon = false;
       void persist(t("faviconGenerated"));
     });
@@ -387,14 +435,16 @@
       const copy = EnvFavicon.normalizeRule({
         ...rule,
         id: EnvFavicon.makeId("rule"),
-        name: `${rule.name} ${t("copySuffix")}`
+        name: `${rule.name} ${t("copySuffix")}`,
       });
       settings.rules.splice(ruleIndex + 1, 0, copy);
       void persist(t("environmentDuplicated"));
     });
     bind(".remove-rule", "click", () => {
       if (!confirm(t("removeEnvironmentConfirm", rule.name))) return;
-      settings.rules = settings.rules.filter((candidate) => candidate.id !== rule.id);
+      settings.rules = settings.rules.filter(
+        (candidate) => candidate.id !== rule.id,
+      );
       void persist(t("environmentRemoved"));
     });
 
@@ -412,15 +462,23 @@
   }
 
   function appendDiagnosticRow(container, evaluation, isWinner) {
-    const row = createElement("article", `diagnostic-row${isWinner ? " winner" : ""}`);
+    const row = createElement(
+      "article",
+      `diagnostic-row${isWinner ? " winner" : ""}`,
+    );
     const heading = createElement("div", "diagnostic-row-heading");
     const dot = createElement("span", "dot");
     dot.style.backgroundColor = evaluation.rule.color;
     dot.setAttribute("aria-hidden", "true");
     const name = createElement("strong", "", evaluation.rule.name);
-    const priority = createElement("span", "priority-pill", t("priorityValue", String(evaluation.rule.priority || 0)));
+    const priority = createElement(
+      "span",
+      "priority-pill",
+      t("priorityValue", String(evaluation.rule.priority || 0)),
+    );
     heading.append(dot, name, priority);
-    if (isWinner) heading.appendChild(createElement("span", "winner-pill", t("winner")));
+    if (isWinner)
+      heading.appendChild(createElement("span", "winner-pill", t("winner")));
 
     const details = createElement("p", "diagnostic-detail");
     details.textContent = t("matchedBy", evaluation.includedBy || "-");
@@ -462,20 +520,29 @@
       const dot = createElement("span", "dot");
       dot.style.backgroundColor = diagnosis.winner.color;
       dot.setAttribute("aria-hidden", "true");
-      summary.append(dot, document.createTextNode(t("winnerSummary", diagnosis.winner.name)));
+      summary.append(
+        dot,
+        document.createTextNode(t("winnerSummary", diagnosis.winner.name)),
+      );
       if (diagnosis.hasConflict) {
-        summary.appendChild(createElement("span", "conflict-badge", t("conflictDetected")));
+        summary.appendChild(
+          createElement("span", "conflict-badge", t("conflictDetected")),
+        );
       }
     }
 
     if (diagnosis.matches.length) {
       const matchesSection = createElement("section", "diagnostic-section");
       matchesSection.appendChild(createElement("h3", "", t("matchedRules")));
-      diagnosis.matches.forEach((evaluation, index) => appendDiagnosticRow(matchesSection, evaluation, index === 0));
+      diagnosis.matches.forEach((evaluation, index) =>
+        appendDiagnosticRow(matchesSection, evaluation, index === 0),
+      );
       results.appendChild(matchesSection);
     }
 
-    const excluded = diagnosis.evaluations.filter((evaluation) => evaluation.includedBy && evaluation.excludedBy);
+    const excluded = diagnosis.evaluations.filter(
+      (evaluation) => evaluation.includedBy && evaluation.excludedBy,
+    );
     if (excluded.length) {
       const excludedSection = createElement("section", "diagnostic-section");
       excludedSection.appendChild(createElement("h3", "", t("excludedRules")));
@@ -485,22 +552,34 @@
         const dot = createElement("span", "dot");
         dot.style.backgroundColor = evaluation.rule.color;
         heading.append(dot, createElement("strong", "", evaluation.rule.name));
-        row.append(heading, createElement("p", "diagnostic-detail", t("excludedBy", evaluation.excludedBy)));
+        row.append(
+          heading,
+          createElement(
+            "p",
+            "diagnostic-detail",
+            t("excludedBy", evaluation.excludedBy),
+          ),
+        );
         excludedSection.appendChild(row);
       });
       results.appendChild(excludedSection);
     }
 
     const errors = diagnosis.evaluations.flatMap((evaluation) =>
-      evaluation.errors.map((error) => ({ ...error, rule: evaluation.rule }))
+      evaluation.errors.map((error) => ({ ...error, rule: evaluation.rule })),
     );
     if (errors.length) {
-      const errorSection = createElement("section", "diagnostic-section diagnostic-errors");
+      const errorSection = createElement(
+        "section",
+        "diagnostic-section diagnostic-errors",
+      );
       errorSection.appendChild(createElement("h3", "", t("patternErrors")));
       const list = createElement("ul");
       errors.forEach((error) => {
         const issue = { code: error.code, pattern: error.pattern };
-        list.appendChild(createElement("li", "", `${error.rule.name}: ${formatIssue(issue)}`));
+        list.appendChild(
+          createElement("li", "", `${error.rule.name}: ${formatIssue(issue)}`),
+        );
       });
       errorSection.appendChild(list);
       results.appendChild(errorSection);
@@ -522,15 +601,21 @@
     clear(container);
     const visible = filteredRules();
     if (!visible.length) {
-      container.appendChild(createElement("p", "empty-state", t("noFilterMatches")));
+      container.appendChild(
+        createElement("p", "empty-state", t("noFilterMatches")),
+      );
     } else {
-      visible.forEach((rule, index) => container.appendChild(renderRule(rule, index, visible.length)));
+      visible.forEach((rule, index) =>
+        container.appendChild(renderRule(rule, index, visible.length)),
+      );
     }
     renderTester();
   }
 
   function downloadJson(payload) {
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     const date = new Date().toISOString().slice(0, 10);
@@ -549,7 +634,10 @@
       return;
     }
     try {
-      const tabs = await EnvFavicon.callApi(tabsApi.query.bind(tabsApi), { active: true, currentWindow: true });
+      const tabs = await EnvFavicon.callApi(tabsApi.query.bind(tabsApi), {
+        active: true,
+        currentWindow: true,
+      });
       const url = tabs?.[0]?.url || "";
       if (!url) throw new Error("The active tab has no readable URL.");
       testedUrl = url;
@@ -561,10 +649,18 @@
     }
   }
 
-  $("#enabled").addEventListener("change", (event) => updateGlobalSetting("enabled", event.target.checked));
-  $("#titlePrefixEnabled").addEventListener("change", (event) => updateGlobalSetting("titlePrefixEnabled", event.target.checked));
-  $("#reapplyOnChanges").addEventListener("change", (event) => updateGlobalSetting("reapplyOnChanges", event.target.checked));
-  $("#debug").addEventListener("change", (event) => updateGlobalSetting("debug", event.target.checked));
+  $("#enabled").addEventListener("change", (event) =>
+    updateGlobalSetting("enabled", event.target.checked),
+  );
+  $("#titlePrefixEnabled").addEventListener("change", (event) =>
+    updateGlobalSetting("titlePrefixEnabled", event.target.checked),
+  );
+  $("#reapplyOnChanges").addEventListener("change", (event) =>
+    updateGlobalSetting("reapplyOnChanges", event.target.checked),
+  );
+  $("#debug").addEventListener("change", (event) =>
+    updateGlobalSetting("debug", event.target.checked),
+  );
   $("#storagePreference").addEventListener("change", (event) => {
     void changeStoragePreference(event.target.value);
   });
@@ -596,7 +692,7 @@
     const group = EnvFavicon.normalizeGroup({
       id: EnvFavicon.makeId("group"),
       name: name.trim(),
-      color: "#64748B"
+      color: "#64748B",
     });
     settings.groups.push(group);
     activeGroupId = group.id;
@@ -604,7 +700,9 @@
   });
 
   $("#renameGroup").addEventListener("click", () => {
-    const group = settings.groups.find((candidate) => candidate.id === activeGroupId);
+    const group = settings.groups.find(
+      (candidate) => candidate.id === activeGroupId,
+    );
     if (!group) return;
     const name = prompt(t("renameGroupPrompt"), group.name);
     if (name === null) return;
@@ -617,9 +715,13 @@
   });
 
   $("#deleteGroup").addEventListener("click", () => {
-    const group = settings.groups.find((candidate) => candidate.id === activeGroupId);
+    const group = settings.groups.find(
+      (candidate) => candidate.id === activeGroupId,
+    );
     if (!group || !confirm(t("deleteGroupConfirm", group.name))) return;
-    settings.groups = settings.groups.filter((candidate) => candidate.id !== group.id);
+    settings.groups = settings.groups.filter(
+      (candidate) => candidate.id !== group.id,
+    );
     settings.rules.forEach((rule) => {
       if (rule.groupId === group.id) rule.groupId = null;
     });
@@ -628,19 +730,26 @@
   });
 
   $("#addRule").addEventListener("click", () => {
-    const groupId = ![ALL_GROUPS, UNGROUPED].includes(activeGroupId) ? activeGroupId : null;
-    const highestPriority = settings.rules.reduce((maximum, rule) => Math.max(maximum, rule.priority || 0), 0);
-    settings.rules.unshift(EnvFavicon.normalizeRule({
-      id: EnvFavicon.makeId("rule"),
-      groupId,
-      name: t("newEnvironment"),
-      label: "ENV",
-      color: "#64748B",
-      priority: Math.min(999, highestPriority + 10),
-      matchType: "hostname",
-      patterns: ["example.local"],
-      favicon: EnvFavicon.createGeneratedFavicon("ENV", "#64748B")
-    }));
+    const groupId = ![ALL_GROUPS, UNGROUPED].includes(activeGroupId)
+      ? activeGroupId
+      : null;
+    const highestPriority = settings.rules.reduce(
+      (maximum, rule) => Math.max(maximum, rule.priority || 0),
+      0,
+    );
+    settings.rules.unshift(
+      EnvFavicon.normalizeRule({
+        id: EnvFavicon.makeId("rule"),
+        groupId,
+        name: t("newEnvironment"),
+        label: "ENV",
+        color: "#64748B",
+        priority: Math.min(999, highestPriority + 10),
+        matchType: "hostname",
+        patterns: ["example.local"],
+        favicon: EnvFavicon.createGeneratedFavicon("ENV", "#64748B"),
+      }),
+    );
     void persist(t("environmentAdded"));
   });
 
@@ -695,7 +804,7 @@
         syncAvailable: Boolean(EnvFavicon.api?.storage?.sync),
         bytes: EnvFavicon.byteLength(JSON.stringify(settings)),
         maximumBytes: EnvFavicon.MAX_SYNC_BYTES,
-        lastError: null
+        lastError: null,
       };
       render();
       toast(t("loadFailed"));

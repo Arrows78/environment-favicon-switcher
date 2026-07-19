@@ -18,7 +18,7 @@ const ALLOWED_TYPES = new Set([
   "revert",
   "security",
   "style",
-  "test"
+  "test",
 ]);
 const USER_FACING_TYPES = new Set([
   "deprecate",
@@ -27,12 +27,13 @@ const USER_FACING_TYPES = new Set([
   "perf",
   "remove",
   "revert",
-  "security"
+  "security",
 ]);
 const AUTOMATED_BODY_EXEMPTIONS = new Map([
-  ["dependabot[bot]", new Set(["build", "ci"])]
+  ["dependabot[bot]", new Set(["build", "ci"])],
 ]);
-const TITLE_PATTERN = /^(?<type>[a-z][a-z0-9-]*)(?:\((?<scope>[a-z0-9][a-z0-9._/-]*)\))?(?<breaking>!)?: (?<subject>.+)$/;
+const TITLE_PATTERN =
+  /^(?<type>[a-z][a-z0-9-]*)(?:\((?<scope>[a-z0-9][a-z0-9._/-]*)\))?(?<breaking>!)?: (?<subject>.+)$/;
 
 export function parsePullRequestTitle(title) {
   const normalized = String(title || "").trim();
@@ -44,7 +45,7 @@ export function parsePullRequestTitle(title) {
     scope: match.groups.scope || "",
     breaking: Boolean(match.groups.breaking),
     subject: match.groups.subject,
-    normalized
+    normalized,
   };
 }
 
@@ -55,7 +56,9 @@ export function extractReleaseNotesSection(body) {
 
   const contentStart = heading.index + heading[0].length;
   const nextHeading = /^##[ \t]+.+$/m.exec(text.slice(contentStart));
-  const contentEnd = nextHeading ? contentStart + nextHeading.index : text.length;
+  const contentEnd = nextHeading
+    ? contentStart + nextHeading.index
+    : text.length;
 
   return text
     .slice(contentStart, contentEnd)
@@ -73,30 +76,37 @@ function releaseNotesStatus(section) {
     .map((line) => line.trim())
     .filter(Boolean);
   const meaningfulLines = lines.filter((line) => !/^#{3,6}\s+/.test(line));
-  const noteLines = meaningfulLines.filter((line) => /^[-*]\s+/.test(line) && !/^[-*]\s+\[[ xX]\]/.test(line));
+  const noteLines = meaningfulLines.filter(
+    (line) => /^[-*]\s+/.test(line) && !/^[-*]\s+\[[ xX]\]/.test(line),
+  );
   const notApplicableLines = meaningfulLines.filter((line) =>
-    /^(?:[-*]\s+)?(?:n\/a|not applicable)(?:\s*(?:[-—:])\s*.+)?$/i.test(line)
+    /^(?:[-*]\s+)?(?:n\/a|not applicable)(?:\s*(?:[-—:])\s*.+)?$/i.test(line),
   );
 
-  const releaseNoteBullets = noteLines.filter((line) =>
-    !/^(?:[-*]\s+)?(?:n\/a|not applicable)\b/i.test(line)
+  const releaseNoteBullets = noteLines.filter(
+    (line) => !/^(?:[-*]\s+)?(?:n\/a|not applicable)\b/i.test(line),
   );
 
   return {
     hasContent: meaningfulLines.length > 0,
-    hasReleaseNoteBullet: releaseNoteBullets.some((line) =>
-      line.replace(/^[-*]\s+/, "").trim().length >= 3
+    hasReleaseNoteBullet: releaseNoteBullets.some(
+      (line) => line.replace(/^[-*]\s+/, "").trim().length >= 3,
     ),
-    onlyNotApplicable: meaningfulLines.length > 0 && notApplicableLines.length === meaningfulLines.length,
+    onlyNotApplicable:
+      meaningfulLines.length > 0 &&
+      notApplicableLines.length === meaningfulLines.length,
     hasExplainedNotApplicable: notApplicableLines.some((line) =>
-      /(?:n\/a|not applicable)\s*(?:[-—:])\s*\S+/i.test(line)
-    )
+      /(?:n\/a|not applicable)\s*(?:[-—:])\s*\S+/i.test(line),
+    ),
   };
 }
 
 function mayOmitReleaseNotes(parsedTitle, actor) {
   if (!parsedTitle || parsedTitle.breaking) return false;
-  return AUTOMATED_BODY_EXEMPTIONS.get(String(actor || ""))?.has(parsedTitle.type) || false;
+  return (
+    AUTOMATED_BODY_EXEMPTIONS.get(String(actor || ""))?.has(parsedTitle.type) ||
+    false
+  );
 }
 
 export function validatePullRequest({ title, body, actor }) {
@@ -104,7 +114,9 @@ export function validatePullRequest({ title, body, actor }) {
   const parsedTitle = parsePullRequestTitle(title);
 
   if (!parsedTitle) {
-    errors.push("Title must use type(scope): subject or type(scope)!: subject.");
+    errors.push(
+      "Title must use type(scope): subject or type(scope)!: subject.",
+    );
   } else {
     if (!ALLOWED_TYPES.has(parsedTitle.type)) {
       errors.push(`Unsupported pull request type: ${parsedTitle.type}.`);
@@ -130,7 +142,9 @@ export function validatePullRequest({ title, body, actor }) {
 
   const status = releaseNotesStatus(releaseNotes);
   if (!status.hasContent) {
-    errors.push("The ## Release notes section must contain a bullet or an explained N/A entry.");
+    errors.push(
+      "The ## Release notes section must contain a bullet or an explained N/A entry.",
+    );
     return errors;
   }
 
@@ -140,10 +154,17 @@ export function validatePullRequest({ title, body, actor }) {
 
   if (userFacing) {
     if (!status.hasReleaseNoteBullet || status.onlyNotApplicable) {
-      errors.push("User-facing and breaking changes require at least one release-note bullet; N/A is not allowed.");
+      errors.push(
+        "User-facing and breaking changes require at least one release-note bullet; N/A is not allowed.",
+      );
     }
-  } else if (!status.hasReleaseNoteBullet && !status.hasExplainedNotApplicable) {
-    errors.push("Internal changes must provide a release-note bullet or an explained N/A entry.");
+  } else if (
+    !status.hasReleaseNoteBullet &&
+    !status.hasExplainedNotApplicable
+  ) {
+    errors.push(
+      "Internal changes must provide a release-note bullet or an explained N/A entry.",
+    );
   }
 
   return errors;
@@ -162,12 +183,14 @@ function optionValue(args, name) {
 function pullRequestFromEvent(path) {
   const event = JSON.parse(readFileSync(path, "utf8"));
   if (!event.pull_request) {
-    throw new Error("The event payload does not contain a pull_request object.");
+    throw new Error(
+      "The event payload does not contain a pull_request object.",
+    );
   }
   return {
     title: event.pull_request.title,
     body: event.pull_request.body || "",
-    actor: event.sender?.login || event.pull_request.user?.login || ""
+    actor: event.sender?.login || event.pull_request.user?.login || "",
   };
 }
 
@@ -184,12 +207,14 @@ async function main() {
       title: optionValue(args, "--title") || process.env.PR_TITLE,
       body: bodyFile
         ? readFileSync(resolve(bodyFile), "utf8")
-        : process.env.PR_BODY
+        : process.env.PR_BODY,
     };
   }
 
   if (!pullRequest.title) {
-    throw new Error("Provide a pull request through --event or pass --title and --body-file.");
+    throw new Error(
+      "Provide a pull request through --event or pass --title and --body-file.",
+    );
   }
 
   const errors = validatePullRequest(pullRequest);
@@ -197,7 +222,9 @@ async function main() {
     throw new Error(`Pull request policy failed:\n- ${errors.join("\n- ")}`);
   }
 
-  console.log("Pull request title and release notes satisfy the repository policy.");
+  console.log(
+    "Pull request title and release notes satisfy the repository policy.",
+  );
 }
 
 const entryPoint = process.argv[1] ? resolve(process.argv[1]) : "";

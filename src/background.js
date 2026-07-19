@@ -26,25 +26,34 @@
         callAction("setBadgeText", { tabId, text: "" }),
         callAction("setTitle", {
           tabId,
-          title: translated("extensionName", undefined, "Environment Favicon Switcher")
-        })
+          title: translated(
+            "extensionName",
+            undefined,
+            "Environment Favicon Switcher",
+          ),
+        }),
       ]);
       return;
     }
 
-    const label = String(rule.label || "ENV").slice(0, 4).toUpperCase();
+    const label = String(rule.label || "ENV")
+      .slice(0, 4)
+      .toUpperCase();
     const title = status?.hasConflict
       ? translated(
-        "detectedEnvironmentConflict",
-        [rule.name, String(status.matchCount || 2)],
-        `Detected: ${rule.name} (${status.matchCount || 2} matching rules)`
-      )
+          "detectedEnvironmentConflict",
+          [rule.name, String(status.matchCount || 2)],
+          `Detected: ${rule.name} (${status.matchCount || 2} matching rules)`,
+        )
       : translated("detectedEnvironment", rule.name, `Detected: ${rule.name}`);
 
     await Promise.all([
       callAction("setBadgeText", { tabId, text: label }),
-      callAction("setBadgeBackgroundColor", { tabId, color: rule.color || "#64748B" }),
-      callAction("setTitle", { tabId, title })
+      callAction("setBadgeBackgroundColor", {
+        tabId,
+        color: rule.color || "#64748B",
+      }),
+      callAction("setTitle", { tabId, title }),
     ]);
   }
 
@@ -67,12 +76,16 @@
     const preferenceChange = changes?.[EnvFavicon.SYNC_PREFERENCE_KEY];
     if (preferenceChange) {
       const preference = preferenceChange.newValue === true ? "sync" : "local";
-      void EnvFavicon.setStorage({ [EnvFavicon.STORAGE_PREFERENCE_KEY]: preference }, "local");
+      void EnvFavicon.setStorage(
+        { [EnvFavicon.STORAGE_PREFERENCE_KEY]: preference },
+        "local",
+      );
     }
 
-    const settingsChanged = Object.keys(changes).some((key) =>
-      key === EnvFavicon.SYNC_MANIFEST_KEY
-      || key.startsWith(EnvFavicon.SYNC_CHUNK_PREFIX)
+    const settingsChanged = Object.keys(changes).some(
+      (key) =>
+        key === EnvFavicon.SYNC_MANIFEST_KEY ||
+        key.startsWith(EnvFavicon.SYNC_CHUNK_PREFIX),
     );
     if (!settingsChanged) return;
     clearTimeout(syncRefreshTimer);

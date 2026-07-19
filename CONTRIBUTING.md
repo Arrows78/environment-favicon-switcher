@@ -104,7 +104,6 @@ The initial `historyBaseline` in `release.config.json` is a one-time migration g
 
 Version tags intentionally keep the repository's existing format (`2.4.0`, without a `v` prefix). The workflow uses the dedicated `automation/release` branch. Its default GitHub token is sufficient to maintain the pull request and the workflow runs the full release gate itself. Repositories whose branch rules require checks triggered by the pull request can provide a fine-grained `RELEASE_PR_TOKEN` secret with repository contents and pull-request write access.
 
-
 ## Dependency and security automation
 
 - Dependabot groups npm and GitHub Actions updates every Monday, uses Conventional Commit prefixes, and keeps immutable action SHA pins current.

@@ -3,7 +3,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import test from "node:test";
 
 const WORKFLOW_DIRECTORY = new URL("../.github/workflows/", import.meta.url);
-const PINNED_ACTION_PATTERN = /^\s*uses:\s+[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)?@[0-9a-f]{40}\s+#\s+v\d+\.\d+\.\d+\s*$/;
+const PINNED_ACTION_PATTERN =
+  /^\s*uses:\s+[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)?@[0-9a-f]{40}\s+#\s+v\d+\.\d+\.\d+\s*$/;
 
 function workflowEntries() {
   return readdirSync(WORKFLOW_DIRECTORY)
@@ -11,7 +12,7 @@ function workflowEntries() {
     .sort()
     .map((name) => ({
       name,
-      source: readFileSync(new URL(name, WORKFLOW_DIRECTORY), "utf8")
+      source: readFileSync(new URL(name, WORKFLOW_DIRECTORY), "utf8"),
     }));
 }
 
@@ -25,16 +26,22 @@ test("pins every external GitHub Action to an immutable commit", () => {
       assert.match(
         line,
         PINNED_ACTION_PATTERN,
-        `${workflow.name}:${index + 1} must use a 40-character commit with a version comment`
+        `${workflow.name}:${index + 1} must use a 40-character commit with a version comment`,
       );
     }
   }
 
-  assert.ok(actionCount >= 10, "expected the repository workflows to use external actions");
+  assert.ok(
+    actionCount >= 10,
+    "expected the repository workflows to use external actions",
+  );
 });
 
 test("configures weekly grouped dependency updates with conventional prefixes", () => {
-  const source = readFileSync(new URL("../.github/dependabot.yml", import.meta.url), "utf8");
+  const source = readFileSync(
+    new URL("../.github/dependabot.yml", import.meta.url),
+    "utf8",
+  );
   assert.match(source, /package-ecosystem: npm/);
   assert.match(source, /package-ecosystem: github-actions/);
   assert.match(source, /timezone: Europe\/Paris/g);
@@ -43,10 +50,13 @@ test("configures weekly grouped dependency updates with conventional prefixes", 
 });
 
 test("scans source and workflows and rejects high-severity dependency regressions", () => {
-  const codeql = readFileSync(new URL("../.github/workflows/codeql.yml", import.meta.url), "utf8");
+  const codeql = readFileSync(
+    new URL("../.github/workflows/codeql.yml", import.meta.url),
+    "utf8",
+  );
   const dependencyReview = readFileSync(
     new URL("../.github/workflows/dependency-review.yml", import.meta.url),
-    "utf8"
+    "utf8",
   );
 
   assert.match(codeql, /language: actions/);

@@ -13,9 +13,12 @@ const RUNTIME_ENTRIES = [
   "styles",
   "manifest.json",
   "options.html",
-  "popup.html"
+  "popup.html",
 ];
-const FIXED_EPOCH = Number.parseInt(process.env.SOURCE_DATE_EPOCH || "1704067200", 10);
+const FIXED_EPOCH = Number.parseInt(
+  process.env.SOURCE_DATE_EPOCH || "1704067200",
+  10,
+);
 
 function crc32(buffer) {
   let crc = 0xffffffff;
@@ -32,20 +35,33 @@ function dosTimestamp(epochSeconds) {
   const date = new Date(Math.max(315532800, epochSeconds) * 1000);
   const year = Math.min(2107, Math.max(1980, date.getUTCFullYear()));
   return {
-    time: (date.getUTCHours() << 11) | (date.getUTCMinutes() << 5) | Math.floor(date.getUTCSeconds() / 2),
-    date: ((year - 1980) << 9) | ((date.getUTCMonth() + 1) << 5) | date.getUTCDate()
+    time:
+      (date.getUTCHours() << 11) |
+      (date.getUTCMinutes() << 5) |
+      Math.floor(date.getUTCSeconds() / 2),
+    date:
+      ((year - 1980) << 9) |
+      ((date.getUTCMonth() + 1) << 5) |
+      date.getUTCDate(),
   };
 }
 
 async function collect(entryPath) {
   const absolutePath = path.join(ROOT, entryPath);
-  const directoryEntries = await readdir(absolutePath, { withFileTypes: true }).catch(() => null);
+  const directoryEntries = await readdir(absolutePath, {
+    withFileTypes: true,
+  }).catch(() => null);
   if (!directoryEntries) return [entryPath];
 
   const files = [];
-  for (const entry of directoryEntries.sort((a, b) => a.name.localeCompare(b.name))) {
-    const child = path.posix.join(entryPath.split(path.sep).join("/"), entry.name);
-    if (entry.isDirectory()) files.push(...await collect(child));
+  for (const entry of directoryEntries.sort((a, b) =>
+    a.name.localeCompare(b.name),
+  )) {
+    const child = path.posix.join(
+      entryPath.split(path.sep).join("/"),
+      entry.name,
+    );
+    if (entry.isDirectory()) files.push(...(await collect(child)));
     else if (entry.isFile()) files.push(child);
   }
   return files;
@@ -116,21 +132,35 @@ function createZip(entries, timestamp) {
   return Buffer.concat([...localParts, centralDirectory, end]);
 }
 
-const manifest = JSON.parse(await readFile(path.join(ROOT, "manifest.json"), "utf8"));
-const fileNames = (await Promise.all(RUNTIME_ENTRIES.map(collect))).flat().sort();
-if (fileNames.length > 0xffff) throw new Error("The extension contains too many files for a standard ZIP archive.");
+const manifest = JSON.parse(
+  await readFile(path.join(ROOT, "manifest.json"), "utf8"),
+);
+const fileNames = (await Promise.all(RUNTIME_ENTRIES.map(collect)))
+  .flat()
+  .sort();
+if (fileNames.length > 0xffff)
+  throw new Error(
+    "The extension contains too many files for a standard ZIP archive.",
+  );
 
-const entries = await Promise.all(fileNames.map(async (name) => ({
-  name: name.split(path.sep).join("/"),
-  content: await readFile(path.join(ROOT, name))
-})));
+const entries = await Promise.all(
+  fileNames.map(async (name) => ({
+    name: name.split(path.sep).join("/"),
+    content: await readFile(path.join(ROOT, name)),
+  })),
+);
 const archive = createZip(entries, dosTimestamp(FIXED_EPOCH));
 const outputDirectory = path.join(ROOT, "dist");
-const outputFile = path.join(outputDirectory, `environment-favicon-switcher-v${manifest.version}.zip`);
+const outputFile = path.join(
+  outputDirectory,
+  `environment-favicon-switcher-v${manifest.version}.zip`,
+);
 await rm(outputDirectory, { recursive: true, force: true });
 await mkdir(outputDirectory, { recursive: true });
 await writeFile(outputFile, archive);
 
 const digest = createHash("sha256").update(archive).digest("hex");
-console.log(`Packaged ${entries.length} files in ${path.relative(ROOT, outputFile)} (${archive.length} bytes).`);
+console.log(
+  `Packaged ${entries.length} files in ${path.relative(ROOT, outputFile)} (${archive.length} bytes).`,
+);
 console.log(`SHA-256 ${digest}`);

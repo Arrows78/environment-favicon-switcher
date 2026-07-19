@@ -4,7 +4,12 @@
 
   const api = globalThis.browser || globalThis.chrome || null;
   const SETTINGS_SCHEMA_VERSION = 2;
-  const SUPPORTED_MATCH_TYPES = new Set(["contains", "hostname", "glob", "regex"]);
+  const SUPPORTED_MATCH_TYPES = new Set([
+    "contains",
+    "hostname",
+    "glob",
+    "regex",
+  ]);
   const DEFAULT_COLOR = "#64748B";
   const MAX_REGEX_LENGTH = 1000;
   const STORAGE_PREFERENCE_KEY = "storagePreference";
@@ -26,12 +31,16 @@
   }
 
   function makeId(prefix = "rule") {
-    if (globalThis.crypto?.randomUUID) return `${prefix}-${globalThis.crypto.randomUUID()}`;
+    if (globalThis.crypto?.randomUUID)
+      return `${prefix}-${globalThis.crypto.randomUUID()}`;
     return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
   function callApi(fn, ...args) {
-    if (typeof fn !== "function") return Promise.reject(new TypeError("A browser API function is required."));
+    if (typeof fn !== "function")
+      return Promise.reject(
+        new TypeError("A browser API function is required."),
+      );
 
     if (globalThis.browser && api === globalThis.browser) {
       try {
@@ -62,7 +71,7 @@
         if (maybePromise && typeof maybePromise.then === "function") {
           maybePromise.then(
             (result) => settle(resolve, result),
-            (error) => settle(reject, error)
+            (error) => settle(reject, error),
           );
         }
       } catch (error) {
@@ -81,7 +90,12 @@
     return /^#[0-9A-F]{6}$/i.test(color) ? color.toUpperCase() : fallback;
   }
 
-  function normalizeInteger(value, fallback = 0, minimum = -999, maximum = 999) {
+  function normalizeInteger(
+    value,
+    fallback = 0,
+    minimum = -999,
+    maximum = 999,
+  ) {
     const parsed = Number.parseInt(value, 10);
     if (!Number.isFinite(parsed)) return fallback;
     return Math.min(maximum, Math.max(minimum, parsed));
@@ -89,16 +103,14 @@
 
   function normalizePatterns(value) {
     if (!Array.isArray(value)) return [];
-    return value
-      .map((pattern) => String(pattern ?? "").trim())
-      .filter(Boolean);
+    return value.map((pattern) => String(pattern ?? "").trim()).filter(Boolean);
   }
 
   function normalizeGroup(group = {}) {
     return {
       id: normalizeString(group.id, makeId("group")),
       name: normalizeString(group.name, "Group"),
-      color: normalizeColor(group.color)
+      color: normalizeColor(group.color),
     };
   }
 
@@ -111,23 +123,27 @@
       label: normalizeString(rule.label, "ENV").slice(0, 12),
       color: normalizeColor(rule.color),
       priority: normalizeInteger(rule.priority),
-      matchType: SUPPORTED_MATCH_TYPES.has(rule.matchType) ? rule.matchType : "contains",
+      matchType: SUPPORTED_MATCH_TYPES.has(rule.matchType)
+        ? rule.matchType
+        : "contains",
       patterns: normalizePatterns(rule.patterns),
       excludePatterns: normalizePatterns(rule.excludePatterns),
       favicon: String(rule.favicon || "").trim(),
-      keepOriginalFavicon: Boolean(rule.keepOriginalFavicon)
+      keepOriginalFavicon: Boolean(rule.keepOriginalFavicon),
     };
   }
 
   function normalizeSettings(settings) {
-    const defaults = clone(globalThis.DEFAULT_SETTINGS || {
-      enabled: true,
-      titlePrefixEnabled: false,
-      reapplyOnChanges: true,
-      debug: false,
-      groups: [],
-      rules: []
-    });
+    const defaults = clone(
+      globalThis.DEFAULT_SETTINGS || {
+        enabled: true,
+        titlePrefixEnabled: false,
+        reapplyOnChanges: true,
+        debug: false,
+        groups: [],
+        rules: [],
+      },
+    );
     const source = settings && typeof settings === "object" ? settings : {};
     const merged = {
       ...defaults,
@@ -138,7 +154,7 @@
         : (defaults.groups || []).map(normalizeGroup),
       rules: Array.isArray(source.rules)
         ? source.rules.map(normalizeRule)
-        : (defaults.rules || []).map(normalizeRule)
+        : (defaults.rules || []).map(normalizeRule),
     };
 
     const groupIds = new Set(merged.groups.map((group) => group.id));
@@ -167,7 +183,7 @@
     if (!storageArea) {
       throw new SettingsStorageError(
         `${areaName}-unavailable`,
-        `Browser storage area "${areaName}" is unavailable.`
+        `Browser storage area "${areaName}" is unavailable.`,
       );
     }
     return storageArea;
@@ -191,7 +207,8 @@
 
   function byteLength(value) {
     const text = String(value || "");
-    if (typeof TextEncoder === "function") return new TextEncoder().encode(text).length;
+    if (typeof TextEncoder === "function")
+      return new TextEncoder().encode(text).length;
     return unescape(encodeURIComponent(text)).length;
   }
 
@@ -252,7 +269,10 @@
   async function loadLocalSettings() {
     const stored = await getStorage(["settings"], "local");
     const normalized = normalizeSettings(stored?.settings);
-    if (!stored?.settings || stored.settings.schemaVersion !== SETTINGS_SCHEMA_VERSION) {
+    if (
+      !stored?.settings ||
+      stored.settings.schemaVersion !== SETTINGS_SCHEMA_VERSION
+    ) {
       await setStorage({ settings: normalized }, "local");
     }
     return normalized;
@@ -260,7 +280,10 @@
 
   async function writeSyncSettings(settings) {
     if (!syncAvailable()) {
-      throw new SettingsStorageError("sync-unavailable", "Synchronized browser storage is unavailable.");
+      throw new SettingsStorageError(
+        "sync-unavailable",
+        "Synchronized browser storage is unavailable.",
+      );
     }
 
     const normalized = normalizeSettings(settings);
@@ -269,13 +292,14 @@
     if (totalBytes > MAX_SYNC_BYTES) {
       throw new SettingsStorageError(
         "sync-too-large",
-        `The configuration uses ${totalBytes} bytes; synchronized storage is limited to ${MAX_SYNC_BYTES} bytes.`
+        `The configuration uses ${totalBytes} bytes; synchronized storage is limited to ${MAX_SYNC_BYTES} bytes.`,
       );
     }
 
     const chunks = splitUtf8(serialized);
     const previous = await getStorage([SYNC_MANIFEST_KEY], "sync");
-    const previousChunkCount = Number.parseInt(previous?.[SYNC_MANIFEST_KEY]?.chunks, 10) || 0;
+    const previousChunkCount =
+      Number.parseInt(previous?.[SYNC_MANIFEST_KEY]?.chunks, 10) || 0;
     const values = {
       [SYNC_MANIFEST_KEY]: {
         format: "environment-favicon-switcher",
@@ -284,8 +308,8 @@
         chunks: chunks.length,
         bytes: totalBytes,
         checksum: checksum(serialized),
-        updatedAt: new Date().toISOString()
-      }
+        updatedAt: new Date().toISOString(),
+      },
     };
     chunks.forEach((chunk, index) => {
       values[syncChunkKey(index)] = chunk;
@@ -305,57 +329,92 @@
 
   async function readSyncSettings() {
     if (!syncAvailable()) {
-      throw new SettingsStorageError("sync-unavailable", "Synchronized browser storage is unavailable.");
+      throw new SettingsStorageError(
+        "sync-unavailable",
+        "Synchronized browser storage is unavailable.",
+      );
     }
 
-    const manifestResult = await getStorage([SYNC_MANIFEST_KEY, "settings"], "sync");
+    const manifestResult = await getStorage(
+      [SYNC_MANIFEST_KEY, "settings"],
+      "sync",
+    );
     const manifest = manifestResult?.[SYNC_MANIFEST_KEY];
 
     if (!manifest) {
       if (manifestResult?.settings) return manifestResult.settings;
-      throw new SettingsStorageError("sync-missing", "No synchronized configuration was found.");
+      throw new SettingsStorageError(
+        "sync-missing",
+        "No synchronized configuration was found.",
+      );
     }
-    if (manifest.format !== "environment-favicon-switcher" || manifest.version !== SYNC_FORMAT_VERSION) {
-      throw new SettingsStorageError("sync-format", "The synchronized configuration format is unsupported.");
+    if (
+      manifest.format !== "environment-favicon-switcher" ||
+      manifest.version !== SYNC_FORMAT_VERSION
+    ) {
+      throw new SettingsStorageError(
+        "sync-format",
+        "The synchronized configuration format is unsupported.",
+      );
     }
 
     const chunkCount = Number.parseInt(manifest.chunks, 10);
     if (!Number.isFinite(chunkCount) || chunkCount < 1 || chunkCount > 64) {
-      throw new SettingsStorageError("sync-corrupt", "The synchronized configuration manifest is invalid.");
+      throw new SettingsStorageError(
+        "sync-corrupt",
+        "The synchronized configuration manifest is invalid.",
+      );
     }
 
-    const keys = Array.from({ length: chunkCount }, (_, index) => syncChunkKey(index));
+    const keys = Array.from({ length: chunkCount }, (_, index) =>
+      syncChunkKey(index),
+    );
     const values = await getStorage(keys, "sync");
     const chunks = keys.map((key) => values?.[key]);
     if (chunks.some((chunk) => typeof chunk !== "string")) {
-      throw new SettingsStorageError("sync-corrupt", "One or more synchronized configuration chunks are missing.");
+      throw new SettingsStorageError(
+        "sync-corrupt",
+        "One or more synchronized configuration chunks are missing.",
+      );
     }
 
     const serialized = chunks.join("");
     if (manifest.checksum && checksum(serialized) !== manifest.checksum) {
-      throw new SettingsStorageError("sync-corrupt", "The synchronized configuration checksum is invalid.");
+      throw new SettingsStorageError(
+        "sync-corrupt",
+        "The synchronized configuration checksum is invalid.",
+      );
     }
 
     try {
       const parsed = JSON.parse(serialized);
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-        throw new TypeError("The synchronized configuration must be a JSON object.");
+        throw new TypeError(
+          "The synchronized configuration must be a JSON object.",
+        );
       }
       return parsed;
     } catch (error) {
-      throw new SettingsStorageError("sync-corrupt", "The synchronized configuration is not valid settings JSON.", error);
+      throw new SettingsStorageError(
+        "sync-corrupt",
+        "The synchronized configuration is not valid settings JSON.",
+        error,
+      );
     }
   }
 
   async function recordStorageFallback(error) {
-    await setStorage({
-      [STORAGE_PREFERENCE_KEY]: "local",
-      [STORAGE_STATUS_KEY]: {
-        lastError: error?.code || "sync-error",
-        message: error?.message || String(error),
-        at: new Date().toISOString()
-      }
-    }, "local");
+    await setStorage(
+      {
+        [STORAGE_PREFERENCE_KEY]: "local",
+        [STORAGE_STATUS_KEY]: {
+          lastError: error?.code || "sync-error",
+          message: error?.message || String(error),
+          at: new Date().toISOString(),
+        },
+      },
+      "local",
+    );
   }
 
   async function getSettings() {
@@ -365,15 +424,23 @@
     try {
       const synchronized = await readSyncSettings();
       const normalized = normalizeSettings(synchronized);
-      await setStorage({ settings: normalized, [STORAGE_STATUS_KEY]: null }, "local");
+      await setStorage(
+        { settings: normalized, [STORAGE_STATUS_KEY]: null },
+        "local",
+      );
       if (synchronized?.schemaVersion !== SETTINGS_SCHEMA_VERSION) {
         await writeSyncSettings(normalized);
       }
       return normalized;
     } catch (error) {
-      const normalizedError = error instanceof SettingsStorageError
-        ? error
-        : new SettingsStorageError("sync-error", "Unable to read synchronized settings.", error);
+      const normalizedError =
+        error instanceof SettingsStorageError
+          ? error
+          : new SettingsStorageError(
+              "sync-error",
+              "Unable to read synchronized settings.",
+              error,
+            );
       await recordStorageFallback(normalizedError);
       return loadLocalSettings();
     }
@@ -383,19 +450,24 @@
     const normalized = normalizeSettings(settings);
     await setStorage({ settings: normalized }, "local");
 
-    if (await getStoragePreference() === "sync") {
+    if ((await getStoragePreference()) === "sync") {
       try {
         await writeSyncSettings(normalized);
         await setStorage({ [STORAGE_STATUS_KEY]: null }, "local");
       } catch (error) {
-        const normalizedError = error instanceof SettingsStorageError
-          ? error
-          : new SettingsStorageError("sync-error", "Unable to write synchronized settings.", error);
+        const normalizedError =
+          error instanceof SettingsStorageError
+            ? error
+            : new SettingsStorageError(
+                "sync-error",
+                "Unable to write synchronized settings.",
+                error,
+              );
         await recordStorageFallback(normalizedError);
         throw new SettingsStorageError(
           "sync-fallback-local",
           "Synchronized storage failed; the configuration was kept locally.",
-          normalizedError
+          normalizedError,
         );
       }
     }
@@ -405,7 +477,7 @@
 
   async function setStoragePreference(preference, settings) {
     const target = preference === "sync" ? "sync" : "local";
-    const normalized = normalizeSettings(settings || await getSettings());
+    const normalized = normalizeSettings(settings || (await getSettings()));
     await setStorage({ settings: normalized }, "local");
 
     if (target === "sync") {
@@ -413,10 +485,13 @@
       await setStorage({ [SYNC_PREFERENCE_KEY]: true }, "sync");
     }
 
-    await setStorage({
-      [STORAGE_PREFERENCE_KEY]: target,
-      [STORAGE_STATUS_KEY]: null
-    }, "local");
+    await setStorage(
+      {
+        [STORAGE_PREFERENCE_KEY]: target,
+        [STORAGE_STATUS_KEY]: null,
+      },
+      "local",
+    );
 
     if (target === "local" && syncAvailable()) {
       try {
@@ -427,7 +502,9 @@
   }
 
   async function getStorageStatus(settings) {
-    const normalized = normalizeSettings(settings || await loadLocalSettings());
+    const normalized = normalizeSettings(
+      settings || (await loadLocalSettings()),
+    );
     const stored = await getStorage([STORAGE_STATUS_KEY], "local");
     const preference = await getStoragePreference();
     const bytes = byteLength(JSON.stringify(normalized));
@@ -439,7 +516,7 @@
       chunks: Math.max(1, Math.ceil(bytes / SYNC_CHUNK_BYTES)),
       lastError: stored?.[STORAGE_STATUS_KEY]?.lastError || null,
       lastErrorMessage: stored?.[STORAGE_STATUS_KEY]?.message || "",
-      lastErrorAt: stored?.[STORAGE_STATUS_KEY]?.at || null
+      lastErrorAt: stored?.[STORAGE_STATUS_KEY]?.at || null,
     };
   }
 
@@ -453,8 +530,13 @@
 
   function faviconToUrl(favicon) {
     if (!favicon) return "";
-    if (/^(https?:|data:|blob:|moz-extension:|chrome-extension:)/i.test(favicon)) return favicon;
-    return api?.runtime?.getURL ? api.runtime.getURL(favicon.replace(/^\//, "")) : favicon;
+    if (
+      /^(https?:|data:|blob:|moz-extension:|chrome-extension:)/i.test(favicon)
+    )
+      return favicon;
+    return api?.runtime?.getURL
+      ? api.runtime.getURL(favicon.replace(/^\//, ""))
+      : favicon;
   }
 
   function escapeXml(value) {
@@ -476,14 +558,16 @@
   }
 
   function createGeneratedFavicon(label, color = DEFAULT_COLOR) {
-    const characters = Array.from(normalizeString(label, "ENV"))
-      .filter((character) => /[\p{L}\p{N}]/u.test(character))
-      .slice(0, 3)
-      .join("")
-      .toUpperCase() || "ENV";
+    const characters =
+      Array.from(normalizeString(label, "ENV"))
+        .filter((character) => /[\p{L}\p{N}]/u.test(character))
+        .slice(0, 3)
+        .join("")
+        .toUpperCase() || "ENV";
     const background = normalizeColor(color);
     const foreground = readableTextColor(background);
-    const fontSize = characters.length === 1 ? 34 : characters.length === 2 ? 26 : 20;
+    const fontSize =
+      characters.length === 1 ? 34 : characters.length === 2 ? 26 : 20;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${background}"/><text x="32" y="34" dominant-baseline="middle" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="${fontSize}" font-weight="800" fill="${foreground}">${escapeXml(characters)}</text></svg>`;
     return `data:image/svg+xml,${encodeURIComponent(svg)}`;
   }
@@ -497,11 +581,16 @@
   }
 
   function normalizeHostnamePattern(pattern) {
-    const candidate = String(pattern || "").trim().toLowerCase().replace(/^\*\./, "");
+    const candidate = String(pattern || "")
+      .trim()
+      .toLowerCase()
+      .replace(/^\*\./, "");
     if (!candidate) return "";
 
     try {
-      const parsed = new URL(candidate.includes("://") ? candidate : `https://${candidate}`);
+      const parsed = new URL(
+        candidate.includes("://") ? candidate : `https://${candidate}`,
+      );
       return parsed.hostname.replace(/\.$/, "");
     } catch (_) {
       return candidate.split("/")[0].replace(/:\d+$/, "").replace(/\.$/, "");
@@ -527,28 +616,39 @@
         if (pattern.length > MAX_REGEX_LENGTH) {
           return { matched: false, pattern, error: "regex-too-long" };
         }
-        return { matched: new RegExp(pattern, "i").test(url), pattern, error: null };
+        return {
+          matched: new RegExp(pattern, "i").test(url),
+          pattern,
+          error: null,
+        };
       }
 
       if (matchType === "hostname") {
-        if (!parsedUrl) return { matched: false, pattern, error: "invalid-url" };
+        if (!parsedUrl)
+          return { matched: false, pattern, error: "invalid-url" };
         const hostname = parsedUrl.hostname.toLowerCase().replace(/\.$/, "");
         const expected = normalizeHostnamePattern(pattern);
         return {
-          matched: Boolean(expected) && (hostname === expected || hostname.endsWith(`.${expected}`)),
+          matched:
+            Boolean(expected) &&
+            (hostname === expected || hostname.endsWith(`.${expected}`)),
           pattern,
-          error: null
+          error: null,
         };
       }
 
       if (matchType === "glob") {
-        return { matched: globToRegExp(pattern).test(url), pattern, error: null };
+        return {
+          matched: globToRegExp(pattern).test(url),
+          pattern,
+          error: null,
+        };
       }
 
       return {
         matched: url.toLowerCase().includes(pattern.toLowerCase()),
         pattern,
-        error: null
+        error: null,
       };
     } catch (_) {
       return { matched: false, pattern, error: "invalid-pattern" };
@@ -563,19 +663,39 @@
     let excludedBy = null;
 
     if (!rule.enabled) {
-      return { rule, index, matched: false, includedBy, excludedBy, errors, disabled: true };
+      return {
+        rule,
+        index,
+        matched: false,
+        includedBy,
+        excludedBy,
+        errors,
+        disabled: true,
+      };
     }
 
     for (const pattern of rule.patterns || []) {
-      const result = matchPattern(normalizedUrl, parsedUrl, rule.matchType, pattern);
-      if (result.error) errors.push({ pattern, code: result.error, excluded: false });
+      const result = matchPattern(
+        normalizedUrl,
+        parsedUrl,
+        rule.matchType,
+        pattern,
+      );
+      if (result.error)
+        errors.push({ pattern, code: result.error, excluded: false });
       if (result.matched && !includedBy) includedBy = pattern;
     }
 
     if (includedBy) {
       for (const pattern of rule.excludePatterns || []) {
-        const result = matchPattern(normalizedUrl, parsedUrl, rule.matchType, pattern);
-        if (result.error) errors.push({ pattern, code: result.error, excluded: true });
+        const result = matchPattern(
+          normalizedUrl,
+          parsedUrl,
+          rule.matchType,
+          pattern,
+        );
+        if (result.error)
+          errors.push({ pattern, code: result.error, excluded: true });
         if (result.matched && !excludedBy) excludedBy = pattern;
       }
     }
@@ -587,20 +707,25 @@
       includedBy,
       excludedBy,
       errors,
-      disabled: false
+      disabled: false,
     };
   }
 
   function compareEvaluations(left, right) {
-    const priorityDifference = (right.rule.priority || 0) - (left.rule.priority || 0);
+    const priorityDifference =
+      (right.rule.priority || 0) - (left.rule.priority || 0);
     return priorityDifference || left.index - right.index;
   }
 
   function diagnoseUrl(url, settings) {
     const normalized = normalizeSettings(settings);
-    const evaluations = normalized.rules.map((rule, index) => evaluateRule(url, rule, index));
+    const evaluations = normalized.rules.map((rule, index) =>
+      evaluateRule(url, rule, index),
+    );
     const matches = normalized.enabled
-      ? evaluations.filter((evaluation) => evaluation.matched).sort(compareEvaluations)
+      ? evaluations
+          .filter((evaluation) => evaluation.matched)
+          .sort(compareEvaluations)
       : [];
 
     return {
@@ -610,12 +735,14 @@
       winner: matches[0]?.rule || null,
       matches,
       evaluations,
-      hasConflict: matches.length > 1
+      hasConflict: matches.length > 1,
     };
   }
 
   function findMatchingRules(url, settings) {
-    return diagnoseUrl(url, settings).matches.map((evaluation) => evaluation.rule);
+    return diagnoseUrl(url, settings).matches.map(
+      (evaluation) => evaluation.rule,
+    );
   }
 
   function findMatchingRule(url, settings) {
@@ -624,11 +751,18 @@
 
   function validateRule(rule, index = 0) {
     const issues = [];
-    if (!rule.patterns.length) issues.push({ code: "missing-patterns", index, ruleId: rule.id });
+    if (!rule.patterns.length)
+      issues.push({ code: "missing-patterns", index, ruleId: rule.id });
     if (rule.matchType === "regex") {
       for (const pattern of rule.patterns.concat(rule.excludePatterns)) {
-        const result = matchPattern("https://example.test", parseUrl("https://example.test"), "regex", pattern);
-        if (result.error) issues.push({ code: result.error, index, ruleId: rule.id, pattern });
+        const result = matchPattern(
+          "https://example.test",
+          parseUrl("https://example.test"),
+          "regex",
+          pattern,
+        );
+        if (result.error)
+          issues.push({ code: result.error, index, ruleId: rule.id, pattern });
       }
     }
     if (!rule.keepOriginalFavicon && !rule.favicon) {
@@ -647,7 +781,7 @@
       format: "environment-favicon-switcher",
       version: 1,
       exportedAt: new Date().toISOString(),
-      settings: normalizeSettings(settings)
+      settings: normalizeSettings(settings),
     };
   }
 
@@ -657,10 +791,18 @@
     }
     if (payload.format === "environment-favicon-switcher") {
       if (payload.version !== 1) {
-        throw new TypeError("The imported configuration format version is unsupported.");
+        throw new TypeError(
+          "The imported configuration format version is unsupported.",
+        );
       }
-      if (!payload.settings || typeof payload.settings !== "object" || Array.isArray(payload.settings)) {
-        throw new TypeError("The imported configuration does not contain settings.");
+      if (
+        !payload.settings ||
+        typeof payload.settings !== "object" ||
+        Array.isArray(payload.settings)
+      ) {
+        throw new TypeError(
+          "The imported configuration does not contain settings.",
+        );
       }
       return normalizeSettings(payload.settings);
     }
@@ -674,8 +816,12 @@
     const groupById = new Map(current.groups.map((group) => [group.id, group]));
     imported.groups.forEach((group) => groupById.set(group.id, group));
 
-    const importedRuleById = new Map(imported.rules.map((rule) => [rule.id, rule]));
-    const mergedRules = current.rules.map((rule) => importedRuleById.get(rule.id) || rule);
+    const importedRuleById = new Map(
+      imported.rules.map((rule) => [rule.id, rule]),
+    );
+    const mergedRules = current.rules.map(
+      (rule) => importedRuleById.get(rule.id) || rule,
+    );
     const currentRuleIds = new Set(current.rules.map((rule) => rule.id));
     imported.rules.forEach((rule) => {
       if (!currentRuleIds.has(rule.id)) mergedRules.push(rule);
@@ -684,7 +830,7 @@
     return normalizeSettings({
       ...current,
       groups: Array.from(groupById.values()),
-      rules: mergedRules
+      rules: mergedRules,
     });
   }
 
@@ -734,6 +880,6 @@
     validateSettings,
     createExportPayload,
     parseImportPayload,
-    mergeSettings
+    mergeSettings,
   };
 })();

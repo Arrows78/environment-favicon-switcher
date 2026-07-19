@@ -1,24 +1,22 @@
 #!/usr/bin/env node
 
 import { execFileSync } from "node:child_process";
-import {
-  appendFileSync,
-  readFileSync,
-  writeFileSync
-} from "node:fs";
+import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
-const RELEASE_HEADING_PATTERN = /^## \[((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*))\] - (\d{4}-\d{2}-\d{2})$/;
-const LINK_DEFINITION_PATTERN = /^\[(Unreleased|(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*))\]:\s+\S+\s*$/;
+const RELEASE_HEADING_PATTERN =
+  /^## \[((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*))\] - (\d{4}-\d{2}-\d{2})$/;
+const LINK_DEFINITION_PATTERN =
+  /^\[(Unreleased|(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*))\]:\s+\S+\s*$/;
 const CHANGELOG_SECTIONS = [
   "Added",
   "Changed",
   "Deprecated",
   "Removed",
   "Fixed",
-  "Security"
+  "Security",
 ];
 const SECTION_SET = new Set(CHANGELOG_SECTIONS);
 const TYPE_RULES = new Map([
@@ -28,13 +26,13 @@ const TYPE_RULES = new Map([
   ["deprecate", { bump: "patch", section: "Deprecated" }],
   ["remove", { bump: "patch", section: "Removed" }],
   ["revert", { bump: "patch", section: "Changed" }],
-  ["security", { bump: "patch", section: "Security" }]
+  ["security", { bump: "patch", section: "Security" }],
 ]);
 const BUMP_RANK = new Map([
   [null, 0],
   ["patch", 1],
   ["minor", 2],
-  ["major", 3]
+  ["major", 3],
 ]);
 
 function readJson(path) {
@@ -94,11 +92,11 @@ function firstConventionalHeader(subject, body) {
     ...String(body || "")
       .split(/\r?\n/)
       .map(cleanSummary)
-      .filter(Boolean)
+      .filter(Boolean),
   ];
 
   return candidates.find((candidate) =>
-    /^[a-z][a-z0-9-]*(?:\([^)\r\n]+\))?!?: .+/.test(candidate)
+    /^[a-z][a-z0-9-]*(?:\([^)\r\n]+\))?!?: .+/.test(candidate),
   );
 }
 
@@ -106,14 +104,22 @@ export function parseConventionalCommit(commit) {
   const header = firstConventionalHeader(commit.subject, commit.body);
   if (!header) return null;
 
-  const match = /^(?<type>[a-z][a-z0-9-]*)(?:\((?<scope>[^)\r\n]+)\))?(?<breaking>!)?: (?<description>.+)$/.exec(header);
+  const match =
+    /^(?<type>[a-z][a-z0-9-]*)(?:\((?<scope>[^)\r\n]+)\))?(?<breaking>!)?: (?<description>.+)$/.exec(
+      header,
+    );
   if (!match) return null;
 
-  const breakingMatch = /^BREAKING(?: |-)?CHANGE:\s*(.+)$/im.exec(commit.body || "");
+  const breakingMatch = /^BREAKING(?: |-)?CHANGE:\s*(.+)$/im.exec(
+    commit.body || "",
+  );
   const breaking = Boolean(match.groups.breaking || breakingMatch);
   const description = cleanSummary(match.groups.description);
 
-  if (!description || (match.groups.type === "chore" && match.groups.scope === "release")) {
+  if (
+    !description ||
+    (match.groups.type === "chore" && match.groups.scope === "release")
+  ) {
     return null;
   }
 
@@ -123,12 +129,14 @@ export function parseConventionalCommit(commit) {
     scope: cleanSummary(match.groups.scope),
     description,
     breaking,
-    breakingNote: cleanSummary(breakingMatch?.[1])
+    breakingNote: cleanSummary(breakingMatch?.[1]),
   };
 }
 
 function strongerBump(current, candidate) {
-  return BUMP_RANK.get(candidate) > BUMP_RANK.get(current) ? candidate : current;
+  return BUMP_RANK.get(candidate) > BUMP_RANK.get(current)
+    ? candidate
+    : current;
 }
 
 export function planRelease(commits, currentVersion, releaseAs) {
@@ -166,7 +174,7 @@ export function planRelease(commits, currentVersion, releaseAs) {
     previousVersion: currentVersion,
     version,
     bump,
-    entries
+    entries,
   };
 }
 
@@ -174,13 +182,17 @@ function loadConfig(root) {
   const config = readJson(resolve(root, "release.config.json"));
 
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(config.repository || "")) {
-    throw new Error("release.config.json must define repository as owner/name.");
+    throw new Error(
+      "release.config.json must define repository as owner/name.",
+    );
   }
   if (!/^[A-Za-z0-9._/-]+$/.test(config.releaseBranch || "")) {
     throw new Error("release.config.json must define a safe releaseBranch.");
   }
   if (typeof config.tagPrefix !== "string" || /\s/.test(config.tagPrefix)) {
-    throw new Error("release.config.json tagPrefix must be a string without whitespace.");
+    throw new Error(
+      "release.config.json tagPrefix must be a string without whitespace.",
+    );
   }
   if (config.historyBaseline !== undefined) {
     if (!config.historyBaseline || typeof config.historyBaseline !== "object") {
@@ -188,7 +200,9 @@ function loadConfig(root) {
     }
     parseVersion(config.historyBaseline.version);
     if (!/^[0-9a-f]{40}$/i.test(config.historyBaseline.ref || "")) {
-      throw new Error("release.config.json historyBaseline.ref must be a full commit SHA.");
+      throw new Error(
+        "release.config.json historyBaseline.ref must be a full commit SHA.",
+      );
     }
   }
 
@@ -206,9 +220,10 @@ function changelogUrl(config, suffix) {
 function commitBullet(entry, config) {
   const scope = entry.scope ? `**${entry.scope}:** ` : "";
   const breaking = entry.breaking ? "**Breaking:** " : "";
-  const note = entry.breakingNote && entry.breakingNote !== entry.description
-    ? `${entry.description} — ${entry.breakingNote}`
-    : entry.description;
+  const note =
+    entry.breakingNote && entry.breakingNote !== entry.description
+      ? `${entry.description} — ${entry.breakingNote}`
+      : entry.description;
   const summary = `${breaking}${scope}${capitalize(note)}`;
 
   if (!entry.hash) return `- ${summary}`;
@@ -230,7 +245,9 @@ function parseUnreleasedSections(content) {
     const heading = /^### (.+)$/.exec(line);
     if (heading) {
       if (!SECTION_SET.has(heading[1])) {
-        throw new Error(`Unsupported Keep a Changelog section in Unreleased: ${heading[1]}`);
+        throw new Error(
+          `Unsupported Keep a Changelog section in Unreleased: ${heading[1]}`,
+        );
       }
       currentSection = heading[1];
       if (sections.has(currentSection)) {
@@ -242,7 +259,9 @@ function parseUnreleasedSections(content) {
 
     if (!currentSection) {
       if (line.trim()) {
-        throw new Error("Content under Unreleased must be grouped under Keep a Changelog sections.");
+        throw new Error(
+          "Content under Unreleased must be grouped under Keep a Changelog sections.",
+        );
       }
       continue;
     }
@@ -258,9 +277,16 @@ function parseUnreleasedSections(content) {
   return sections;
 }
 
-export function renderReleaseSection(plan, date, config, manualSections = new Map()) {
+export function renderReleaseSection(
+  plan,
+  date,
+  config,
+  manualSections = new Map(),
+) {
   if (!plan.release || !plan.version) {
-    throw new Error("Cannot render a release section without a planned release.");
+    throw new Error(
+      "Cannot render a release section without a planned release.",
+    );
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new Error(`Invalid release date: ${date}`);
@@ -276,12 +302,15 @@ export function renderReleaseSection(plan, date, config, manualSections = new Ma
     const parts = [];
     const manual = manualSections.get(section);
     if (manual) parts.push(manual);
-    if (generated.get(section).length) parts.push(generated.get(section).join("\n"));
+    if (generated.get(section).length)
+      parts.push(generated.get(section).join("\n"));
     if (parts.length) blocks.push(`### ${section}\n\n${parts.join("\n")}`);
   }
 
   if (!blocks.length) {
-    throw new Error("The release has no user-visible entries. Add notes under Unreleased or use a release-worthy commit type.");
+    throw new Error(
+      "The release has no user-visible entries. Add notes under Unreleased or use a release-worthy commit type.",
+    );
   }
 
   return `## [${plan.version}] - ${date}\n\n${blocks.join("\n\n")}`;
@@ -306,7 +335,7 @@ function renderChangelogLinks(versions, config) {
   if (!versions.length) return "";
 
   const links = [
-    `[Unreleased]: ${changelogUrl(config, `compare/${releaseTag(config, versions[0])}...HEAD`)}`
+    `[Unreleased]: ${changelogUrl(config, `compare/${releaseTag(config, versions[0])}...HEAD`)}`,
   ];
 
   versions.forEach((version, index) => {
@@ -326,8 +355,13 @@ export function updateChangelog(markdown, plan, date, config) {
   const unreleasedHeading = "## [Unreleased]";
   const unreleasedIndex = body.indexOf(unreleasedHeading);
 
-  if (unreleasedIndex < 0 || body.indexOf(unreleasedHeading, unreleasedIndex + 1) >= 0) {
-    throw new Error("CHANGELOG.md must contain exactly one ## [Unreleased] heading.");
+  if (
+    unreleasedIndex < 0 ||
+    body.indexOf(unreleasedHeading, unreleasedIndex + 1) >= 0
+  ) {
+    throw new Error(
+      "CHANGELOG.md must contain exactly one ## [Unreleased] heading.",
+    );
   }
   if (body.includes(`## [${plan.version}]`)) {
     throw new Error(`CHANGELOG.md already contains version ${plan.version}.`);
@@ -340,7 +374,12 @@ export function updateChangelog(markdown, plan, date, config) {
     : body.length;
   const unreleasedContent = body.slice(contentStart, nextHeadingIndex);
   const manualSections = parseUnreleasedSections(unreleasedContent);
-  const releaseSection = renderReleaseSection(plan, date, config, manualSections);
+  const releaseSection = renderReleaseSection(
+    plan,
+    date,
+    config,
+    manualSections,
+  );
 
   const prefix = body.slice(0, contentStart).trimEnd();
   const suffix = body.slice(nextHeadingIndex).trimStart();
@@ -362,7 +401,7 @@ export function updateVersionFiles(root, version) {
   const manifest = readJson(manifestPath);
 
   if (!packageLock.packages?.[""]) {
-    throw new Error("package-lock.json is missing packages[\"\"].");
+    throw new Error('package-lock.json is missing packages[""].');
   }
 
   packageJson.version = version;
@@ -378,7 +417,9 @@ export function updateVersionFiles(root, version) {
 function validIsoDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const date = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value;
+  return (
+    !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value
+  );
 }
 
 function expectedChangelogLinks(markdown, config) {
@@ -407,34 +448,47 @@ export function collectRepositoryErrors(root) {
   const versions = [
     ["package.json", packageJson.version],
     ["package-lock.json", packageLock.version],
-    ["package-lock.json packages[\"\"]", packageLock.packages?.[""]?.version],
-    ["manifest.json", manifest.version]
+    ['package-lock.json packages[""]', packageLock.packages?.[""]?.version],
+    ["manifest.json", manifest.version],
   ];
 
   for (const [source, version] of versions) {
     if (!VERSION_PATTERN.test(String(version || ""))) {
-      errors.push(`${source} has an invalid three-part semantic version: ${version}`);
+      errors.push(
+        `${source} has an invalid three-part semantic version: ${version}`,
+      );
     }
   }
 
   const distinctVersions = new Set(versions.map(([, version]) => version));
   if (distinctVersions.size !== 1) {
-    errors.push(`Version files are out of sync: ${versions.map(([source, version]) => `${source}=${version}`).join(", ")}`);
-  }
-  if (config.historyBaseline && config.historyBaseline.version !== packageJson.version) {
     errors.push(
-      `historyBaseline targets ${config.historyBaseline.version}, but repository metadata is ${packageJson.version}.`
+      `Version files are out of sync: ${versions.map(([source, version]) => `${source}=${version}`).join(", ")}`,
+    );
+  }
+  if (
+    config.historyBaseline &&
+    config.historyBaseline.version !== packageJson.version
+  ) {
+    errors.push(
+      `historyBaseline targets ${config.historyBaseline.version}, but repository metadata is ${packageJson.version}.`,
     );
   }
 
   const lines = changelog.split(/\r?\n/);
   const levelTwoHeadings = lines.filter((line) => line.startsWith("## "));
-  const unreleasedCount = levelTwoHeadings.filter((line) => line === "## [Unreleased]").length;
+  const unreleasedCount = levelTwoHeadings.filter(
+    (line) => line === "## [Unreleased]",
+  ).length;
   if (unreleasedCount !== 1) {
-    errors.push("CHANGELOG.md must contain exactly one ## [Unreleased] heading.");
+    errors.push(
+      "CHANGELOG.md must contain exactly one ## [Unreleased] heading.",
+    );
   }
   if (levelTwoHeadings[0] !== "## [Unreleased]") {
-    errors.push("## [Unreleased] must be the first level-two heading in CHANGELOG.md.");
+    errors.push(
+      "## [Unreleased] must be the first level-two heading in CHANGELOG.md.",
+    );
   }
 
   const releases = [];
@@ -451,12 +505,16 @@ export function collectRepositoryErrors(root) {
   }
 
   if (releases[0] && releases[0] !== packageJson.version) {
-    errors.push(`The newest changelog release (${releases[0]}) does not match package version ${packageJson.version}.`);
+    errors.push(
+      `The newest changelog release (${releases[0]}) does not match package version ${packageJson.version}.`,
+    );
   }
 
   for (let index = 1; index < releases.length; index += 1) {
     if (compareVersions(releases[index - 1], releases[index]) <= 0) {
-      errors.push(`Changelog versions are not in descending order: ${releases[index - 1]} then ${releases[index]}.`);
+      errors.push(
+        `Changelog versions are not in descending order: ${releases[index - 1]} then ${releases[index]}.`,
+      );
     }
   }
 
@@ -476,13 +534,17 @@ export function collectRepositoryErrors(root) {
     }
     const seen = sectionNamesByRelease.get(currentLevelTwo) || new Set();
     if (seen.has(sectionMatch[1])) {
-      errors.push(`Duplicate ${sectionMatch[1]} section under ${currentLevelTwo || "the changelog preamble"}.`);
+      errors.push(
+        `Duplicate ${sectionMatch[1]} section under ${currentLevelTwo || "the changelog preamble"}.`,
+      );
     }
     seen.add(sectionMatch[1]);
     sectionNamesByRelease.set(currentLevelTwo, seen);
   }
 
-  const actualLinks = new Set(lines.filter((line) => LINK_DEFINITION_PATTERN.test(line)));
+  const actualLinks = new Set(
+    lines.filter((line) => LINK_DEFINITION_PATTERN.test(line)),
+  );
   for (const expected of expectedChangelogLinks(changelog, config)) {
     if (!actualLinks.has(expected)) {
       errors.push(`Missing or stale changelog link: ${expected}`);
@@ -495,7 +557,9 @@ export function collectRepositoryErrors(root) {
 export function validateRepository(root) {
   const errors = collectRepositoryErrors(root);
   if (errors.length) {
-    throw new Error(`Release metadata validation failed:\n- ${errors.join("\n- ")}`);
+    throw new Error(
+      `Release metadata validation failed:\n- ${errors.join("\n- ")}`,
+    );
   }
 }
 
@@ -518,13 +582,19 @@ export function prepareReleaseFiles(root, plan, date) {
 
 export function extractReleaseNotes(markdown, version) {
   parseVersion(version);
-  const headingPattern = new RegExp(`^## \\[${version.replace(/\./g, "\\.")}\\] - \\d{4}-\\d{2}-\\d{2}$`, "m");
+  const headingPattern = new RegExp(
+    `^## \\[${version.replace(/\./g, "\\.")}\\] - \\d{4}-\\d{2}-\\d{2}$`,
+    "m",
+  );
   const match = headingPattern.exec(markdown);
-  if (!match) throw new Error(`Version ${version} is missing from CHANGELOG.md.`);
+  if (!match)
+    throw new Error(`Version ${version} is missing from CHANGELOG.md.`);
 
   const contentStart = match.index + match[0].length;
   const nextHeading = /\n## \[/.exec(markdown.slice(contentStart));
-  const contentEnd = nextHeading ? contentStart + nextHeading.index : markdown.length;
+  const contentEnd = nextHeading
+    ? contentStart + nextHeading.index
+    : markdown.length;
   const notes = markdown.slice(contentStart, contentEnd).trim();
   if (!notes) throw new Error(`Version ${version} has no release notes.`);
   return notes;
@@ -534,7 +604,7 @@ function git(root, argumentsList, options = {}) {
   return execFileSync("git", argumentsList, {
     cwd: root,
     encoding: "utf8",
-    stdio: ["ignore", "pipe", options.quiet ? "ignore" : "pipe"]
+    stdio: ["ignore", "pipe", options.quiet ? "ignore" : "pipe"],
   }).trim();
 }
 
@@ -543,18 +613,24 @@ export function loadCommitsSinceCurrentTag(root, currentVersion, config) {
   try {
     git(root, ["rev-parse", "--verify", `refs/tags/${tag}`], { quiet: true });
   } catch {
-    throw new Error(`Missing release tag ${tag}. Fetch tags before preparing the next release.`);
+    throw new Error(
+      `Missing release tag ${tag}. Fetch tags before preparing the next release.`,
+    );
   }
 
   let historyStart = tag;
   if (config.historyBaseline?.version === currentVersion) {
     const baseline = config.historyBaseline.ref;
     try {
-      git(root, ["rev-parse", "--verify", `${baseline}^{commit}`], { quiet: true });
-      git(root, ["merge-base", "--is-ancestor", baseline, "HEAD"], { quiet: true });
+      git(root, ["rev-parse", "--verify", `${baseline}^{commit}`], {
+        quiet: true,
+      });
+      git(root, ["merge-base", "--is-ancestor", baseline, "HEAD"], {
+        quiet: true,
+      });
     } catch {
       throw new Error(
-        `Configured history baseline ${baseline} must exist and be an ancestor of HEAD.`
+        `Configured history baseline ${baseline} must exist and be an ancestor of HEAD.`,
       );
     }
     historyStart = baseline;
@@ -566,7 +642,7 @@ export function loadCommitsSinceCurrentTag(root, currentVersion, config) {
     "--first-parent",
     "--reverse",
     `--format=${format}`,
-    `${historyStart}..HEAD`
+    `${historyStart}..HEAD`,
   ]);
 
   if (!output) return [];
@@ -593,7 +669,9 @@ function optionValue(args, name) {
 
 function writeOutputs(path, values) {
   if (!path) return;
-  const lines = Object.entries(values).map(([key, value]) => `${key}=${value ?? ""}`);
+  const lines = Object.entries(values).map(
+    ([key, value]) => `${key}=${value ?? ""}`,
+  );
   appendFileSync(path, `${lines.join("\n")}\n`);
 }
 
@@ -615,7 +693,8 @@ function planFromRepository(root, releaseAs) {
 async function main() {
   const [command = "check", ...args] = process.argv.slice(2);
   const root = resolve(optionValue(args, "--root") || process.cwd());
-  const outputPath = optionValue(args, "--github-output") || process.env.GITHUB_OUTPUT;
+  const outputPath =
+    optionValue(args, "--github-output") || process.env.GITHUB_OUTPUT;
 
   if (command === "check") {
     validateRepository(root);
@@ -628,7 +707,11 @@ async function main() {
     const { config, plan } = planFromRepository(root, releaseAs);
 
     if (command === "prepare" && plan.release) {
-      prepareReleaseFiles(root, plan, optionValue(args, "--date") || todayUtc());
+      prepareReleaseFiles(
+        root,
+        plan,
+        optionValue(args, "--date") || todayUtc(),
+      );
     }
 
     writeOutputs(outputPath, {
@@ -637,7 +720,7 @@ async function main() {
       previous_version: plan.previousVersion,
       bump: plan.bump || "",
       tag: plan.version ? releaseTag(config, plan.version) : "",
-      release_branch: config.releaseBranch
+      release_branch: config.releaseBranch,
     });
     console.log(JSON.stringify(plan, null, 2));
     return;

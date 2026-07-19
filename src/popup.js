@@ -24,7 +24,7 @@
     if (!tabsApi?.query) return null;
     const tabs = await EnvFavicon.callApi(tabsApi.query.bind(tabsApi), {
       active: true,
-      currentWindow: true
+      currentWindow: true,
     });
     return tabs?.[0] || null;
   }
@@ -41,18 +41,25 @@
     return settings.rules
       .map((rule, index) => ({ rule, index }))
       .filter(({ rule }) => rule.enabled)
-      .sort((left, right) =>
-        (right.rule.priority || 0) - (left.rule.priority || 0) || left.index - right.index
+      .sort(
+        (left, right) =>
+          (right.rule.priority || 0) - (left.rule.priority || 0) ||
+          left.index - right.index,
       );
   }
 
   function renderRules(settings, diagnosis) {
     const list = $("#rulesList");
     clear(list);
-    const matchingIds = new Set(diagnosis.matches.map((evaluation) => evaluation.rule.id));
+    const matchingIds = new Set(
+      diagnosis.matches.map((evaluation) => evaluation.rule.id),
+    );
 
     sortedRules(settings).forEach(({ rule }) => {
-      const item = createElement("li", matchingIds.has(rule.id) ? "matching" : "");
+      const item = createElement(
+        "li",
+        matchingIds.has(rule.id) ? "matching" : "",
+      );
       if (diagnosis.winner?.id === rule.id) item.classList.add("winner");
 
       const dot = createElement("span", "dot");
@@ -62,14 +69,20 @@
       const details = createElement("span", "rule-list-details");
       details.append(
         createElement("span", "rule-list-name", rule.name),
-        createElement("small", "", t("priorityValue", String(rule.priority || 0)))
+        createElement(
+          "small",
+          "",
+          t("priorityValue", String(rule.priority || 0)),
+        ),
       );
       item.append(dot, label, details);
       list.appendChild(item);
     });
 
     if (!list.children.length) {
-      list.appendChild(createElement("li", "empty-rule-list", t("noActiveEnvironments")));
+      list.appendChild(
+        createElement("li", "empty-rule-list", t("noActiveEnvironments")),
+      );
     }
   }
 
@@ -104,7 +117,9 @@
     dot.setAttribute("aria-hidden", "true");
     title.append(dot, createElement("strong", "", rule.name));
 
-    const faviconStatus = rule.keepOriginalFavicon ? t("originalFaviconKept") : t("faviconReplaced");
+    const faviconStatus = rule.keepOriginalFavicon
+      ? t("originalFaviconKept")
+      : t("faviconReplaced");
     const summary = createElement("p", "status-detail");
     summary.textContent = `${t("label")}: ${rule.label || "-"} - ${faviconStatus}`;
     const match = createElement("p", "status-detail");
@@ -112,18 +127,23 @@
     status.append(title, summary, match);
 
     if (diagnosis.hasConflict) {
-      status.appendChild(createElement(
-        "p",
-        "conflict-detail",
-        t("popupConflict", String(diagnosis.matches.length))
-      ));
+      status.appendChild(
+        createElement(
+          "p",
+          "conflict-detail",
+          t("popupConflict", String(diagnosis.matches.length)),
+        ),
+      );
     }
   }
 
   async function refresh() {
     const status = $("#status");
     try {
-      const [settings, tab] = await Promise.all([EnvFavicon.getSettings(), getActiveTab()]);
+      const [settings, tab] = await Promise.all([
+        EnvFavicon.getSettings(),
+        getActiveTab(),
+      ]);
       activeTab = tab;
       const diagnosis = EnvFavicon.diagnoseUrl(tab?.url || "", settings);
       $("#enabledToggle").checked = settings.enabled;
@@ -166,7 +186,7 @@
       await EnvFavicon.callApi(
         EnvFavicon.api.tabs.sendMessage.bind(EnvFavicon.api.tabs),
         activeTab.id,
-        { type: "ENV_FAVICON_REAPPLY" }
+        { type: "ENV_FAVICON_REAPPLY" },
       );
     } catch (_) {
       // Restricted browser pages do not expose a content-script endpoint.

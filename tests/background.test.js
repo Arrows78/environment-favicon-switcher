@@ -6,7 +6,10 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-const SOURCE = fs.readFileSync(path.resolve(__dirname, "../src/background.js"), "utf8");
+const SOURCE = fs.readFileSync(
+  path.resolve(__dirname, "../src/background.js"),
+  "utf8",
+);
 
 function createEvent() {
   const listeners = [];
@@ -16,7 +19,7 @@ function createEvent() {
     },
     emit(...args) {
       return listeners.map((listener) => listener(...args));
-    }
+    },
   };
 }
 
@@ -26,10 +29,14 @@ function loadBackground() {
     installed: createEvent(),
     message: createEvent(),
     storage: createEvent(),
-    tabUpdated: createEvent()
+    tabUpdated: createEvent(),
   };
   const action = {};
-  for (const method of ["setBadgeText", "setBadgeBackgroundColor", "setTitle"]) {
+  for (const method of [
+    "setBadgeText",
+    "setBadgeBackgroundColor",
+    "setTitle",
+  ]) {
     action[method] = (details) => {
       calls.push({ method, details: JSON.parse(JSON.stringify(details)) });
     };
@@ -40,10 +47,10 @@ function loadBackground() {
     i18n: { getMessage: () => "" },
     runtime: {
       onInstalled: events.installed,
-      onMessage: events.message
+      onMessage: events.message,
     },
     storage: { onChanged: events.storage },
-    tabs: { onUpdated: events.tabUpdated }
+    tabs: { onUpdated: events.tabUpdated },
   };
   const EnvFavicon = {
     api: extensionApi,
@@ -56,14 +63,14 @@ function loadBackground() {
     },
     getSettings: async () => ({ enabled: true, rules: [] }),
     saveSettings: async (settings) => settings,
-    setStorage: async () => undefined
+    setStorage: async () => undefined,
   };
 
   const context = {
     EnvFavicon,
     console,
     setTimeout,
-    clearTimeout
+    clearTimeout,
   };
   context.globalThis = context;
   vm.createContext(context);
@@ -85,15 +92,17 @@ test("tab navigation clears the previous page badge and title state", async () =
     { method: "setBadgeText", details: { tabId: 42, text: "" } },
     {
       method: "setTitle",
-      details: { tabId: 42, title: "Environment Favicon Switcher" }
-    }
+      details: { tabId: 42, title: "Environment Favicon Switcher" },
+    },
   ]);
 });
 
 test("irrelevant tab updates do not reset the toolbar action", async () => {
   const { calls, events } = loadBackground();
 
-  events.tabUpdated.emit(42, { favIconUrl: "https://example.test/favicon.ico" });
+  events.tabUpdated.emit(42, {
+    favIconUrl: "https://example.test/favicon.ico",
+  });
   await flush();
 
   assert.deepEqual(calls, []);
@@ -102,18 +111,24 @@ test("irrelevant tab updates do not reset the toolbar action", async () => {
 test("content status updates badge text, color and tooltip", async () => {
   const { calls, events } = loadBackground();
 
-  events.message.emit({
-    type: "ENV_FAVICON_STATUS",
-    enabled: true,
-    rule: { name: "Review", label: "review", color: "#8b5cf6" },
-    matchCount: 1,
-    hasConflict: false
-  }, { tab: { id: 9 } });
+  events.message.emit(
+    {
+      type: "ENV_FAVICON_STATUS",
+      enabled: true,
+      rule: { name: "Review", label: "review", color: "#8b5cf6" },
+      matchCount: 1,
+      hasConflict: false,
+    },
+    { tab: { id: 9 } },
+  );
   await flush();
 
   assert.deepEqual(calls, [
     { method: "setBadgeText", details: { tabId: 9, text: "REVI" } },
-    { method: "setBadgeBackgroundColor", details: { tabId: 9, color: "#8b5cf6" } },
-    { method: "setTitle", details: { tabId: 9, title: "Detected: Review" } }
+    {
+      method: "setBadgeBackgroundColor",
+      details: { tabId: 9, color: "#8b5cf6" },
+    },
+    { method: "setTitle", details: { tabId: 9, title: "Detected: Review" } },
   ]);
 });

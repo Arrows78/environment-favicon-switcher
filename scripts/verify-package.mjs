@@ -9,7 +9,7 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
-  writeFileSync
+  writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join, relative, resolve } from "node:path";
@@ -25,7 +25,7 @@ export function compareArchiveFiles(firstPath, secondPath) {
 
   if (firstHash !== secondHash) {
     throw new Error(
-      `Extension packaging is not reproducible: ${basename(firstPath)}=${firstHash}, ${basename(secondPath)}=${secondHash}`
+      `Extension packaging is not reproducible: ${basename(firstPath)}=${firstHash}, ${basename(secondPath)}=${secondHash}`,
     );
   }
 
@@ -38,7 +38,9 @@ export function findSingleArchive(distPath) {
     .sort();
 
   if (archives.length !== 1) {
-    throw new Error(`Expected exactly one ZIP archive in ${distPath}, found ${archives.length}.`);
+    throw new Error(
+      `Expected exactly one ZIP archive in ${distPath}, found ${archives.length}.`,
+    );
   }
 
   return join(distPath, archives[0]);
@@ -54,7 +56,7 @@ function gitCommitTimestamp(root) {
   return execFileSync("git", ["show", "-s", "--format=%ct", "HEAD"], {
     cwd: root,
     encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"]
+    stdio: ["ignore", "pipe", "pipe"],
   }).trim();
 }
 
@@ -64,9 +66,9 @@ function runPackage(root, sourceDateEpoch) {
     cwd: root,
     env: {
       ...process.env,
-      SOURCE_DATE_EPOCH: sourceDateEpoch
+      SOURCE_DATE_EPOCH: sourceDateEpoch,
     },
-    stdio: "inherit"
+    stdio: "inherit",
   });
 }
 
@@ -84,13 +86,17 @@ function writeOutputs(path, values) {
   if (!path) return;
   appendFileSync(
     path,
-    `${Object.entries(values).map(([key, value]) => `${key}=${value}`).join("\n")}\n`
+    `${Object.entries(values)
+      .map(([key, value]) => `${key}=${value}`)
+      .join("\n")}\n`,
   );
 }
 
 export function verifyPackage(root, sourceDateEpoch) {
   if (!/^\d+$/.test(String(sourceDateEpoch || ""))) {
-    throw new Error(`SOURCE_DATE_EPOCH must be an integer, received: ${sourceDateEpoch}`);
+    throw new Error(
+      `SOURCE_DATE_EPOCH must be an integer, received: ${sourceDateEpoch}`,
+    );
   }
 
   const distPath = resolve(root, "dist");
@@ -114,7 +120,7 @@ export function verifyPackage(root, sourceDateEpoch) {
       archiveName: basename(archivePath),
       checksum: relative(root, checksumPath).split("\\").join("/"),
       sha256: digest,
-      sourceDateEpoch: String(sourceDateEpoch)
+      sourceDateEpoch: String(sourceDateEpoch),
     };
   } finally {
     rmSync(temporaryPath, { recursive: true, force: true });
@@ -124,24 +130,26 @@ export function verifyPackage(root, sourceDateEpoch) {
 async function main() {
   const args = process.argv.slice(2);
   const root = resolve(optionValue(args, "--root") || process.cwd());
-  const sourceDateEpoch = optionValue(args, "--source-date-epoch")
-    || process.env.SOURCE_DATE_EPOCH
-    || gitCommitTimestamp(root);
+  const sourceDateEpoch =
+    optionValue(args, "--source-date-epoch") ||
+    process.env.SOURCE_DATE_EPOCH ||
+    gitCommitTimestamp(root);
   const result = verifyPackage(root, sourceDateEpoch);
-  const outputPath = optionValue(args, "--github-output") || process.env.GITHUB_OUTPUT;
+  const outputPath =
+    optionValue(args, "--github-output") || process.env.GITHUB_OUTPUT;
 
   writeOutputs(outputPath, {
     archive: result.archive,
     archive_name: result.archiveName,
     checksum: result.checksum,
     sha256: result.sha256,
-    source_date_epoch: result.sourceDateEpoch
+    source_date_epoch: result.sourceDateEpoch,
   });
 
   if (process.env.GITHUB_STEP_SUMMARY) {
     appendFileSync(
       process.env.GITHUB_STEP_SUMMARY,
-      `Reproducible archive: \`${result.archiveName}\`\n\n\`${result.sha256}\`\n`
+      `Reproducible archive: \`${result.archiveName}\`\n\n\`${result.sha256}\`\n`,
     );
   }
 

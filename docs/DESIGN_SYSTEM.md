@@ -38,17 +38,17 @@ Component aliases—such as `--button-primary-background`, `--input-border` and 
 
 ## Foundation scales
 
-| Foundation | Convention |
-| --- | --- |
-| Typography | System-font stack; `--font-size-100` through `--font-size-800`; explicit regular, medium, semibold and bold weights. |
-| Spacing | Four-pixel base rhythm via `--space-0` through `--space-16`. |
-| Radius | `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl` and pill. |
-| Icon size | Small, medium and large tokens; functional icons use the shared `.icon` SVG treatment. |
-| Controls | Small, medium and large heights; minimum target defined by `--size-target-min: 2.75rem`. |
-| Containers | A bounded application content width and a narrower reading width. |
-| Density | Shared control inline padding, control gap and responsive panel padding. |
-| Elevation | Four levels from none to transient overlay; routine panels use restrained elevation. |
-| Motion | Instant, fast and moderate durations with standard and emphasized curves. |
+| Foundation  | Convention                                                                                                                                                                                          |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Typography  | System-font stack; `--font-size-100` through `--font-size-800`; explicit regular, medium, semibold and bold weights.                                                                                |
+| Spacing     | Four-pixel base rhythm via `--space-0` through `--space-16`.                                                                                                                                        |
+| Radius      | `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl` and pill.                                                                                                                                |
+| Icon size   | Small, medium and large tokens; functional icons use the shared `.icon` SVG treatment.                                                                                                              |
+| Controls    | Small, medium and large heights; minimum target defined by `--size-target-min: 2.75rem`.                                                                                                            |
+| Containers  | A bounded application content width and a narrower reading width.                                                                                                                                   |
+| Density     | Shared control inline padding, control gap and responsive panel padding.                                                                                                                            |
+| Elevation   | Four levels from none to transient overlay; routine panels use restrained elevation.                                                                                                                |
+| Motion      | Instant, fast and moderate durations with standard and emphasized curves.                                                                                                                           |
 | Breakpoints | Small mobile, mobile, tablet and desktop tokens document the responsive contract. Concrete values are repeated in media queries because custom properties cannot be used in media-query conditions. |
 
 ## Implemented component inventory

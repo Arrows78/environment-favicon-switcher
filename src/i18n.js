@@ -7,8 +7,10 @@
   }
 
   function localizeDocument(root = document) {
-    const documentRoot = root.documentElement || root.ownerDocument?.documentElement;
-    if (documentRoot) documentRoot.lang = (api?.i18n?.getUILanguage?.() || "en").split("-")[0];
+    const documentRoot =
+      root.documentElement || root.ownerDocument?.documentElement;
+    if (documentRoot)
+      documentRoot.lang = (api?.i18n?.getUILanguage?.() || "en").split("-")[0];
 
     root.querySelectorAll("[data-i18n]").forEach((node) => {
       node.textContent = t(node.dataset.i18n);

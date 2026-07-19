@@ -5,10 +5,7 @@ import { appendFileSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import {
-  extractReleaseNotes,
-  validateRepository
-} from "./release.mjs";
+import { extractReleaseNotes, validateRepository } from "./release.mjs";
 
 const VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
@@ -19,12 +16,19 @@ function readJson(path) {
 export function releaseVersionFromCommitMessage(message) {
   const versions = String(message || "")
     .split(/\r?\n/)
-    .map((line) => /^chore\(release\): ((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*))$/.exec(line.trim())?.[1])
+    .map(
+      (line) =>
+        /^chore\(release\): ((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*))$/.exec(
+          line.trim(),
+        )?.[1],
+    )
     .filter(Boolean);
   const uniqueVersions = [...new Set(versions)];
 
   if (uniqueVersions.length > 1) {
-    throw new Error(`The commit message contains conflicting release versions: ${uniqueVersions.join(", ")}`);
+    throw new Error(
+      `The commit message contains conflicting release versions: ${uniqueVersions.join(", ")}`,
+    );
   }
 
   return uniqueVersions[0] || null;
@@ -41,10 +45,14 @@ export function inspectPublishCandidate(root, commitMessage) {
   const config = readJson(resolve(root, "release.config.json"));
 
   if (!VERSION_PATTERN.test(packageJson.version || "")) {
-    throw new Error(`package.json has an invalid release version: ${packageJson.version}`);
+    throw new Error(
+      `package.json has an invalid release version: ${packageJson.version}`,
+    );
   }
   if (releaseVersion !== packageJson.version) {
-    throw new Error(`Release commit announces ${releaseVersion}, but release metadata contains ${packageJson.version}.`);
+    throw new Error(
+      `Release commit announces ${releaseVersion}, but release metadata contains ${packageJson.version}.`,
+    );
   }
 
   const changelog = readFileSync(resolve(root, "CHANGELOG.md"), "utf8");
@@ -53,7 +61,7 @@ export function inspectPublishCandidate(root, commitMessage) {
   return {
     release: true,
     version: releaseVersion,
-    tag: `${config.tagPrefix || ""}${releaseVersion}`
+    tag: `${config.tagPrefix || ""}${releaseVersion}`,
   };
 }
 
@@ -61,7 +69,7 @@ function git(root, argumentsList) {
   return execFileSync("git", argumentsList, {
     cwd: root,
     encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"]
+    stdio: ["ignore", "pipe", "pipe"],
   }).trim();
 }
 
@@ -79,20 +87,24 @@ function writeOutputs(path, values) {
   if (!path) return;
   appendFileSync(
     path,
-    `${Object.entries(values).map(([key, value]) => `${key}=${value ?? ""}`).join("\n")}\n`
+    `${Object.entries(values)
+      .map(([key, value]) => `${key}=${value ?? ""}`)
+      .join("\n")}\n`,
   );
 }
 
 async function main() {
   const [command = "candidate", ...args] = process.argv.slice(2);
   const root = resolve(optionValue(args, "--root") || process.cwd());
-  const outputPath = optionValue(args, "--github-output") || process.env.GITHUB_OUTPUT;
+  const outputPath =
+    optionValue(args, "--github-output") || process.env.GITHUB_OUTPUT;
 
   if (command !== "candidate" && command !== "check") {
     throw new Error(`Unknown publish command: ${command}`);
   }
 
-  const commitMessage = optionValue(args, "--message") || git(root, ["log", "-1", "--format=%B"]);
+  const commitMessage =
+    optionValue(args, "--message") || git(root, ["log", "-1", "--format=%B"]);
   const candidate = inspectPublishCandidate(root, commitMessage);
 
   if (command === "check" && !candidate.release) {
@@ -102,7 +114,7 @@ async function main() {
   writeOutputs(outputPath, {
     release: String(candidate.release),
     version: candidate.version || "",
-    tag: candidate.tag || ""
+    tag: candidate.tag || "",
   });
   console.log(JSON.stringify(candidate, null, 2));
 }

@@ -30,25 +30,25 @@ The audit covered:
 
 ### Critical — addressed
 
-| Finding | Risk | Decision and user benefit |
-| --- | --- | --- |
-| File inputs were hidden with `display: none`. | Import actions could not be reached or operated reliably from the keyboard. | Keep each native file input focusable and position it over the visual import control. The action retains native browser behaviour, a visible focus ring and a 44 px target. |
-| Environment filters used `tablist` and `tab` without tab panels or the tab keyboard model. | Assistive technologies received a misleading interaction pattern. | Use native toggle buttons in a labelled group and expose selection through `aria-pressed`. |
-| The complete rules list was a live region. | Every render could announce a large, repetitive block of controls and values. | Limit announcements to concise status, validation and toast regions; expose list loading with `aria-busy`. |
-| A rule re-render could remove the currently focused node. | Keyboard and screen-reader users could lose their place while editing. | Add a small native DOM adapter that restores focus to the equivalent control and selects predictable targets after structural actions. |
+| Finding                                                                                    | Risk                                                                          | Decision and user benefit                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File inputs were hidden with `display: none`.                                              | Import actions could not be reached or operated reliably from the keyboard.   | Keep each native file input focusable and position it over the visual import control. The action retains native browser behaviour, a visible focus ring and a 44 px target. |
+| Environment filters used `tablist` and `tab` without tab panels or the tab keyboard model. | Assistive technologies received a misleading interaction pattern.             | Use native toggle buttons in a labelled group and expose selection through `aria-pressed`.                                                                                  |
+| The complete rules list was a live region.                                                 | Every render could announce a large, repetitive block of controls and values. | Limit announcements to concise status, validation and toast regions; expose list loading with `aria-busy`.                                                                  |
+| A rule re-render could remove the currently focused node.                                  | Keyboard and screen-reader users could lose their place while editing.        | Add a small native DOM adapter that restores focus to the equivalent control and selects predictable targets after structural actions.                                      |
 
 ### Important — addressed
 
-| Finding | Risk | Decision and user benefit |
-| --- | --- | --- |
-| Visual decisions mixed generic variables and hard-coded values. | Inconsistent styling and expensive future theme changes. | Add primitive, semantic and component token layers for color, typography, spacing, shape, sizing, layout, elevation and motion. |
-| Rule names lacked a persistent visible label and cards lacked programmatic headings. | Scanning and screen-reader navigation were weaker than the visual design implied. | Add a visible rule-name label and generate one heading per rendered rule card. |
-| Several icon actions used arrow characters. | Inconsistent rendering and ambiguous spoken output. | Use one inline SVG icon language; hide decorative SVGs and keep localized accessible button names. |
-| Some controls were below a robust touch target. | Higher error rate for touch, zoom and motor-impaired users. | Standardize interactive targets to at least 44 by 44 CSS pixels. |
-| Initial rule loading looked like missing content. | Poor perceived performance and uncertainty about application state. | Reserve the final layout with a skeleton, spinner and explicit busy state. |
-| Focus, dark mode, motion reduction and high-contrast behaviour were incomplete. | Accessibility depended on browser defaults and could regress between themes. | Define these behaviours centrally and test their computed output. |
-| Page hierarchy mixed global settings, diagnostics, groups and rules. | Users had to infer which controls affected the extension globally versus locally. | Separate the four tasks into clearly titled surfaces, while preserving existing functionality and wording keys. |
-| Small-width flex items kept desktop basis values. | Mobile layouts could produce excessive gaps or clipped controls. | Reset flex basis and stack forms/actions at task-appropriate breakpoints. |
+| Finding                                                                              | Risk                                                                              | Decision and user benefit                                                                                                       |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Visual decisions mixed generic variables and hard-coded values.                      | Inconsistent styling and expensive future theme changes.                          | Add primitive, semantic and component token layers for color, typography, spacing, shape, sizing, layout, elevation and motion. |
+| Rule names lacked a persistent visible label and cards lacked programmatic headings. | Scanning and screen-reader navigation were weaker than the visual design implied. | Add a visible rule-name label and generate one heading per rendered rule card.                                                  |
+| Several icon actions used arrow characters.                                          | Inconsistent rendering and ambiguous spoken output.                               | Use one inline SVG icon language; hide decorative SVGs and keep localized accessible button names.                              |
+| Some controls were below a robust touch target.                                      | Higher error rate for touch, zoom and motor-impaired users.                       | Standardize interactive targets to at least 44 by 44 CSS pixels.                                                                |
+| Initial rule loading looked like missing content.                                    | Poor perceived performance and uncertainty about application state.               | Reserve the final layout with a skeleton, spinner and explicit busy state.                                                      |
+| Focus, dark mode, motion reduction and high-contrast behaviour were incomplete.      | Accessibility depended on browser defaults and could regress between themes.      | Define these behaviours centrally and test their computed output.                                                               |
+| Page hierarchy mixed global settings, diagnostics, groups and rules.                 | Users had to infer which controls affected the extension globally versus locally. | Separate the four tasks into clearly titled surfaces, while preserving existing functionality and wording keys.                 |
+| Small-width flex items kept desktop basis values.                                    | Mobile layouts could produce excessive gaps or clipped controls.                  | Reset flex basis and stack forms/actions at task-appropriate breakpoints.                                                       |
 
 ### Refinement — addressed
 

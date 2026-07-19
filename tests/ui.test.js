@@ -4,7 +4,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
-const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
+const read = (relativePath) =>
+  fs.readFileSync(path.join(root, relativePath), "utf8");
 
 const optionsHtml = read("options.html");
 const popupHtml = read("popup.html");
@@ -54,19 +55,29 @@ function resolveToken(name, tokens, seen = new Set()) {
 }
 
 function relativeLuminance(hex) {
-  assert.match(hex, /^#[0-9a-f]{6}$/i, `Expected an opaque hexadecimal color, received ${hex}`);
+  assert.match(
+    hex,
+    /^#[0-9a-f]{6}$/i,
+    `Expected an opaque hexadecimal color, received ${hex}`,
+  );
   const channels = [1, 3, 5].map(
-    (index) => Number.parseInt(hex.slice(index, index + 2), 16) / 255
+    (index) => Number.parseInt(hex.slice(index, index + 2), 16) / 255,
   );
   const linear = channels.map((channel) =>
-    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
   );
   return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
 }
 
 function contrastRatio(foreground, background) {
-  const lighter = Math.max(relativeLuminance(foreground), relativeLuminance(background));
-  const darker = Math.min(relativeLuminance(foreground), relativeLuminance(background));
+  const lighter = Math.max(
+    relativeLuminance(foreground),
+    relativeLuminance(background),
+  );
+  const darker = Math.min(
+    relativeLuminance(foreground),
+    relativeLuminance(background),
+  );
   return (lighter + 0.05) / (darker + 0.05);
 }
 
@@ -92,10 +103,12 @@ test("semantic design tokens cover color, type, spacing, shape, elevation and mo
     "--container-content",
     "--breakpoint-tablet",
     "--duration-fast",
-    "--easing-standard"
+    "--easing-standard",
   ];
 
-  requiredTokens.forEach((token) => assert.match(styles, new RegExp(`${token}\\s*:`), token));
+  requiredTokens.forEach((token) =>
+    assert.match(styles, new RegExp(`${token}\\s*:`), token),
+  );
   assert.match(styles, /--size-target-min:\s*2\.75rem/);
   assert.match(styles, /--font-size-100:\s*0\.8125rem/);
 });
@@ -112,26 +125,32 @@ test("semantic text and feedback pairs meet WCAG AA contrast in both themes", ()
     ["--color-action-danger", "--color-surface"],
     ["--color-feedback-success", "--color-feedback-success-surface"],
     ["--color-feedback-warning", "--color-feedback-warning-surface"],
-    ["--color-feedback-error", "--color-feedback-error-surface"]
+    ["--color-feedback-error", "--color-feedback-error-surface"],
   ];
 
-  for (const [theme, tokens] of [["light", lightTokens], ["dark", darkTokens]]) {
+  for (const [theme, tokens] of [
+    ["light", lightTokens],
+    ["dark", darkTokens],
+  ]) {
     for (const [foregroundToken, backgroundToken] of pairs) {
       const ratio = contrastRatio(
         resolveToken(foregroundToken, tokens),
-        resolveToken(backgroundToken, tokens)
+        resolveToken(backgroundToken, tokens),
       );
       assert.ok(
         ratio >= 4.5,
-        `${theme}: ${foregroundToken} on ${backgroundToken} has contrast ${ratio.toFixed(2)}:1`
+        `${theme}: ${foregroundToken} on ${backgroundToken} has contrast ${ratio.toFixed(2)}:1`,
       );
     }
 
     const focusRatio = contrastRatio(
       resolveToken("--color-focus-ring", tokens),
-      resolveToken("--color-surface", tokens)
+      resolveToken("--color-surface", tokens),
     );
-    assert.ok(focusRatio >= 3, `${theme}: focus indicator contrast is ${focusRatio.toFixed(2)}:1`);
+    assert.ok(
+      focusRatio >= 3,
+      `${theme}: focus indicator contrast is ${focusRatio.toFixed(2)}:1`,
+    );
   }
 });
 
@@ -143,12 +162,39 @@ test("theme, motion and forced-color preferences are explicit", () => {
 });
 
 test("file pickers stay keyboard focusable", () => {
-  const fileInputRule = styles.match(/\.import-button\s*>\s*input\[type="file"\]\s*\{([^}]*)\}/s);
+  const fileInputRule = styles.match(
+    /\.import-button\s*>\s*input\[type="file"\]\s*\{([^}]*)\}/s,
+  );
+
   assert.ok(fileInputRule, "Expected a dedicated file-input rule");
   assert.doesNotMatch(fileInputRule[1], /display\s*:\s*none/);
   assert.match(fileInputRule[1], /position\s*:\s*absolute/);
   assert.match(fileInputRule[1], /opacity\s*:\s*0/);
-  assert.match(optionsHtml, /<label class="import-button">[\s\S]*?<input id="importConfig" type="file"/);
+
+  const importLabel = optionsHtml.match(
+    /<label\b[^>]*class="[^"]*\bimport-button\b[^"]*"[^>]*>[\s\S]*?<\/label>/,
+  )?.[0];
+
+  assert.ok(
+    importLabel,
+    "The import file picker must remain wrapped in its visible label.",
+  );
+
+  const importInput = importLabel.match(/<input\b[^>]*>/)?.[0];
+
+  assert.ok(importInput, "The import label must contain a native file input.");
+
+  assert.match(
+    importInput,
+    /\bid="importConfig"/,
+    "The import input must keep its expected id.",
+  );
+
+  assert.match(
+    importInput,
+    /\btype="file"/,
+    "The import input must remain a native file picker.",
+  );
 });
 
 test("group filters use pressed buttons rather than incomplete tab semantics", () => {
@@ -169,7 +215,11 @@ test("live regions are scoped to concise status messages", () => {
   ["testerSummary", "validationSummary", "toast"].forEach((id) => {
     const tag = tagById(optionsHtml, id);
     assert.match(tag, /role="status"/, id);
-    assert.doesNotMatch(tag, /aria-live=/, `${id} relies on the status role's implicit live behavior`);
+    assert.doesNotMatch(
+      tag,
+      /aria-live=/,
+      `${id} relies on the status role's implicit live behavior`,
+    );
   });
 
   const popupStatus = tagById(popupHtml, "status");
@@ -178,21 +228,63 @@ test("live regions are scoped to concise status messages", () => {
 });
 
 test("native labels, descriptions and accessible icon controls are present", () => {
-  assert.match(optionsHtml, /<label class="rule-name-field">[\s\S]*?<input class="rule-name"/);
-  assert.match(tagById(optionsHtml, "storagePreference"), /aria-describedby="storageStatus"/);
+  assert.match(
+    optionsHtml,
+    /<label\b[^>]*class="[^"]*\brule-name-field\b[^"]*"[^>]*>[\s\S]*?<input\b[^>]*class="[^"]*\brule-name\b[^"]*"/,
+  );
+
+  assert.match(
+    tagById(optionsHtml, "storagePreference"),
+    /aria-describedby="storageStatus"/,
+  );
+
   assert.doesNotMatch(optionsHtml, /&#8593;|&#8595;|↑|↓/);
 
   const iconButtons = Array.from(
-    optionsHtml.matchAll(/<button class="(?:move-up|move-down) icon-button"[\s\S]*?<\/button>/g),
-    (match) => match[0]
+    optionsHtml.matchAll(
+      /<button\b[^>]*class="[^"]*\b(?:move-up|move-down)\b[^"]*\bicon-button\b[^"]*"[^>]*>[\s\S]*?<\/button>/g,
+    ),
+    (match) => match[0],
   );
-  assert.equal(iconButtons.length, 2);
+
+  assert.equal(
+    iconButtons.length,
+    2,
+    "The rule template must contain move-up and move-down icon buttons.",
+  );
+
   iconButtons.forEach((button) => {
-    assert.match(button, /data-i18n-aria-label=/);
-    assert.match(button, /<svg[^>]+aria-hidden="true"/);
+    assert.match(
+      button,
+      /\bdata-i18n-aria-label="(?:moveUp|moveDown)"/,
+      "Icon-only buttons must expose a translated accessible name.",
+    );
+
+    const icon = button.match(/<i\b[^>]*>/)?.[0];
+
+    assert.ok(icon, "Icon-only buttons must contain a Phosphor icon.");
+
+    assert.match(
+      icon,
+      /\bclass="[^"]*\bph\b[^"]*"/,
+      "The icon must use the Phosphor base class.",
+    );
+
+    assert.match(
+      icon,
+      /\bclass="[^"]*\bph-[a-z0-9-]+\b[^"]*"/,
+      "The icon must specify a Phosphor glyph.",
+    );
+
+    assert.match(
+      icon,
+      /\baria-hidden="true"/,
+      "Decorative icons must be hidden from assistive technologies.",
+    );
   });
 
   const popupToggle = tagById(popupHtml, "enabledToggle");
+
   assert.match(popupToggle, /class="switch-control"/);
   assert.match(popupToggle, /role="switch"/);
 });
@@ -200,16 +292,28 @@ test("native labels, descriptions and accessible icon controls are present", () 
 test("dynamic UI adapter restores focus and connects contextual help", () => {
   assert.match(uiScript, /new MutationObserver/);
   assert.match(uiScript, /focus\(\{ preventScroll: true \}\)/);
-  assert.match(uiScript, /scrollIntoView\(\{ block: "nearest", inline: "nearest" \}\)/);
-  assert.match(uiScript, /appendDescribedBy\(priorityInput, priorityHint\.id\)/);
+  assert.match(
+    uiScript,
+    /scrollIntoView\(\{ block: "nearest", inline: "nearest" \}\)/,
+  );
+  assert.match(
+    uiScript,
+    /appendDescribedBy\(priorityInput, priorityHint\.id\)/,
+  );
   assert.match(uiScript, /validation\.classList\.contains\("invalid"\)/);
   assert.match(uiScript, /appendDescribedBy\(card, validation\.id\)/);
   assert.match(uiScript, /removeDescribedBy\(card, validation\.id\)/);
-  assert.match(uiScript, /rulesContainer\.setAttribute\("aria-busy", "false"\)/);
+  assert.match(
+    uiScript,
+    /rulesContainer\.setAttribute\("aria-busy", "false"\)/,
+  );
   assert.match(uiScript, /type: "new-rule"/);
   assert.match(uiScript, /type: "remove-rule"/);
   assert.match(uiScript, /type: "group"/);
-  assert.match(uiScript, /hideDecorativeDots\(testerResults\);\s*scheduleEnhancement\(\);/);
+  assert.match(
+    uiScript,
+    /hideDecorativeDots\(testerResults\);\s*scheduleEnhancement\(\);/,
+  );
 });
 
 test("responsive layouts reflow without preserving desktop minimum widths", () => {
@@ -227,6 +331,13 @@ test("static document ids are unique and enhancement scripts are scoped", () => 
     assert.equal(ids.length, new Set(ids).size, "Static IDs must be unique");
   });
 
-  assert.ok(optionsHtml.indexOf('src="src/ui.js"') > optionsHtml.indexOf('src="src/options.js"'));
-  assert.doesNotMatch(popupHtml, /src="src\/ui\.js"/, "The popup must not load the options-only adapter");
+  assert.ok(
+    optionsHtml.indexOf('src="src/ui.js"') >
+      optionsHtml.indexOf('src="src/options.js"'),
+  );
+  assert.doesNotMatch(
+    popupHtml,
+    /src="src\/ui\.js"/,
+    "The popup must not load the options-only adapter",
+  );
 });

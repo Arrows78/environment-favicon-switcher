@@ -26,7 +26,7 @@
     "move-up",
     "move-down",
     "duplicate-rule",
-    "remove-rule"
+    "remove-rule",
   ];
 
   let focusIntent = null;
@@ -38,17 +38,23 @@
   }
 
   function ruleCardById(ruleId) {
-    return currentRuleCards().find((card) => card.dataset.id === ruleId) || null;
+    return (
+      currentRuleCards().find((card) => card.dataset.id === ruleId) || null
+    );
   }
 
   function groupButtonById(groupId) {
-    return Array.from(groupTabs.querySelectorAll(".group-tab")).find(
-      (button) => button.dataset.groupId === groupId
-    ) || null;
+    return (
+      Array.from(groupTabs.querySelectorAll(".group-tab")).find(
+        (button) => button.dataset.groupId === groupId,
+      ) || null
+    );
   }
 
   function controlSelector(element) {
-    const matchingClass = ruleControlClasses.find((className) => element.classList.contains(className));
+    const matchingClass = ruleControlClasses.find((className) =>
+      element.classList.contains(className),
+    );
     return matchingClass ? `.${matchingClass}` : null;
   }
 
@@ -57,24 +63,33 @@
     return {
       start: element.selectionStart,
       end: element.selectionEnd,
-      direction: element.selectionDirection
+      direction: element.selectionDirection,
     };
   }
 
   function setFocusIntent(intent) {
     focusIntent = {
       ...intent,
-      expiresAt: Date.now() + 5000
+      expiresAt: Date.now() + 5000,
     };
   }
 
   function focusElement(element, selection = null) {
-    if (!element || element.disabled || element.getAttribute("aria-disabled") === "true") return false;
+    if (
+      !element ||
+      element.disabled ||
+      element.getAttribute("aria-disabled") === "true"
+    )
+      return false;
 
     element.focus({ preventScroll: true });
     if (selection && typeof element.setSelectionRange === "function") {
       try {
-        element.setSelectionRange(selection.start, selection.end, selection.direction || "none");
+        element.setSelectionRange(
+          selection.start,
+          selection.end,
+          selection.direction || "none",
+        );
       } catch (_) {
         // Some input types, such as number and color, do not expose a text selection.
       }
@@ -88,7 +103,9 @@
     groupTabs.setAttribute("role", "group");
 
     groupTabs.querySelectorAll(".group-tab").forEach((button) => {
-      const isActive = button.classList.contains("active") || button.getAttribute("aria-selected") === "true";
+      const isActive =
+        button.classList.contains("active") ||
+        button.getAttribute("aria-selected") === "true";
       button.removeAttribute("role");
       button.removeAttribute("aria-selected");
       button.setAttribute("aria-pressed", String(isActive));
@@ -104,7 +121,11 @@
   }
 
   function appendDescribedBy(element, id) {
-    const ids = new Set((element.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean));
+    const ids = new Set(
+      (element.getAttribute("aria-describedby") || "")
+        .split(/\s+/)
+        .filter(Boolean),
+    );
     ids.add(id);
     element.setAttribute("aria-describedby", Array.from(ids).join(" "));
   }
@@ -128,7 +149,8 @@
 
       if (heading && nameInput) {
         heading.id = `rule-${idToken}-heading`;
-        if (heading.textContent !== nameInput.value) heading.textContent = nameInput.value;
+        if (heading.textContent !== nameInput.value)
+          heading.textContent = nameInput.value;
         card.setAttribute("aria-labelledby", heading.id);
       }
 
@@ -139,7 +161,10 @@
 
       if (validation) {
         validation.id = `rule-${idToken}-validation`;
-        if (validation.classList.contains("invalid") && validation.textContent.trim()) {
+        if (
+          validation.classList.contains("invalid") &&
+          validation.textContent.trim()
+        ) {
           appendDescribedBy(card, validation.id);
         } else {
           removeDescribedBy(card, validation.id);
@@ -160,7 +185,7 @@
       activeElement &&
       activeElement !== document.body &&
       activeElement !== document.documentElement &&
-      activeElement.isConnected
+      activeElement.isConnected,
     );
   }
 
@@ -174,14 +199,21 @@
     let target = null;
 
     if (focusIntent.type === "new-rule") {
-      const newCard = currentRuleCards().find((card) => !focusIntent.beforeIds.has(card.dataset.id));
+      const newCard = currentRuleCards().find(
+        (card) => !focusIntent.beforeIds.has(card.dataset.id),
+      );
       target = newCard?.querySelector(".rule-name") || null;
     } else if (focusIntent.type === "remove-rule") {
       const cards = currentRuleCards();
-      const fallbackCard = cards[focusIntent.index] || cards[focusIntent.index - 1] || null;
-      target = fallbackCard?.querySelector(".rule-name") || document.querySelector("#addRule");
+      const fallbackCard =
+        cards[focusIntent.index] || cards[focusIntent.index - 1] || null;
+      target =
+        fallbackCard?.querySelector(".rule-name") ||
+        document.querySelector("#addRule");
     } else if (focusIntent.type === "same-rule") {
-      target = ruleCardById(focusIntent.ruleId)?.querySelector(focusIntent.selector) || null;
+      target =
+        ruleCardById(focusIntent.ruleId)?.querySelector(focusIntent.selector) ||
+        null;
     } else if (focusIntent.type === "group") {
       target = groupButtonById(focusIntent.groupId);
     }
@@ -200,7 +232,7 @@
     if (focusElement(control, lastRuleFocus.selection)) {
       lastRuleFocus = {
         ...lastRuleFocus,
-        selection: selectionState(control)
+        selection: selectionState(control),
       };
     }
   }
@@ -240,57 +272,68 @@
     lastRuleFocus = {
       ruleId: card.dataset.id,
       selector,
-      selection: selectionState(target)
+      selection: selectionState(target),
     };
   });
 
-  document.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
+  document.addEventListener(
+    "click",
+    (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
 
-    const button = target.closest("button");
-    if (!button) return;
+      const button = target.closest("button");
+      if (!button) return;
 
-    if (button.id === "addRule") {
-      setFocusIntent({
-        type: "new-rule",
-        beforeIds: new Set(currentRuleCards().map((card) => card.dataset.id))
-      });
-      return;
-    }
+      if (button.id === "addRule") {
+        setFocusIntent({
+          type: "new-rule",
+          beforeIds: new Set(currentRuleCards().map((card) => card.dataset.id)),
+        });
+        return;
+      }
 
-    if (button.classList.contains("group-tab")) {
-      setFocusIntent({ type: "group", groupId: button.dataset.groupId });
-      return;
-    }
+      if (button.classList.contains("group-tab")) {
+        setFocusIntent({ type: "group", groupId: button.dataset.groupId });
+        return;
+      }
 
-    const card = button.closest(".rule-card[data-id]");
-    if (!card) return;
+      const card = button.closest(".rule-card[data-id]");
+      if (!card) return;
 
-    if (button.classList.contains("duplicate-rule")) {
-      setFocusIntent({
-        type: "new-rule",
-        beforeIds: new Set(currentRuleCards().map((candidate) => candidate.dataset.id))
-      });
-      return;
-    }
+      if (button.classList.contains("duplicate-rule")) {
+        setFocusIntent({
+          type: "new-rule",
+          beforeIds: new Set(
+            currentRuleCards().map((candidate) => candidate.dataset.id),
+          ),
+        });
+        return;
+      }
 
-    if (button.classList.contains("remove-rule")) {
-      setFocusIntent({
-        type: "remove-rule",
-        index: currentRuleCards().indexOf(card)
-      });
-      return;
-    }
+      if (button.classList.contains("remove-rule")) {
+        setFocusIntent({
+          type: "remove-rule",
+          index: currentRuleCards().indexOf(card),
+        });
+        return;
+      }
 
-    if (button.classList.contains("move-up") || button.classList.contains("move-down")) {
-      setFocusIntent({
-        type: "same-rule",
-        ruleId: card.dataset.id,
-        selector: button.classList.contains("move-up") ? ".move-up" : ".move-down"
-      });
-    }
-  }, true);
+      if (
+        button.classList.contains("move-up") ||
+        button.classList.contains("move-down")
+      ) {
+        setFocusIntent({
+          type: "same-rule",
+          ruleId: card.dataset.id,
+          selector: button.classList.contains("move-up")
+            ? ".move-up"
+            : ".move-down",
+        });
+      }
+    },
+    true,
+  );
 
   const rulesObserver = new MutationObserver(scheduleEnhancement);
   rulesObserver.observe(rulesContainer, { childList: true, subtree: true });
@@ -302,8 +345,13 @@
   groupsObserver.observe(groupTabs, { childList: true });
 
   if (testerResults) {
-    const diagnosticsObserver = new MutationObserver(() => hideDecorativeDots(testerResults));
-    diagnosticsObserver.observe(testerResults, { childList: true, subtree: true });
+    const diagnosticsObserver = new MutationObserver(() =>
+      hideDecorativeDots(testerResults),
+    );
+    diagnosticsObserver.observe(testerResults, {
+      childList: true,
+      subtree: true,
+    });
   }
 
   normalizeGroupButtons();
