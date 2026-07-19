@@ -12,22 +12,22 @@
     "test": "node --test",
     "validate": "npm run format:check && npm run lint && npm test",
     "package:extension": "npm run vendor:icons && node scripts/package.mjs",
+    "package:verify": "node scripts/verify-package.mjs",
     "build": "npm run validate && npm run package:extension",
+    "check:push": "npm run validate && npm run package:verify",
     "release:check": "node scripts/release.mjs check",
     "release:plan": "node scripts/release.mjs plan",
     "release:prepare": "node scripts/release.mjs prepare",
     "release:notes": "node scripts/release.mjs notes",
     "release:publish-check": "node scripts/publish.mjs check",
-    "package:verify": "node scripts/verify-package.mjs",
     "pr:check": "node scripts/check-pr.mjs",
-    "prepare": "husky",
-    "check:push": "npm run build"
+    "prepare": "husky"
   },
   "engines": {
     "node": ">=22"
   },
   "devDependencies": {
-    "@phosphor-icons/web": "^2.1.2",
+    "@phosphor-icons/web": "2.1.2",
     "husky": "9.1.7",
     "prettier": "3.9.5"
   }
