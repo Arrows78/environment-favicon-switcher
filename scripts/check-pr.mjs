@@ -29,6 +29,9 @@ const USER_FACING_TYPES = new Set([
   "revert",
   "security"
 ]);
+const AUTOMATED_BODY_EXEMPTIONS = new Map([
+  ["dependabot[bot]", new Set(["build", "ci"])]
+]);
 const TITLE_PATTERN = /^(?<type>[a-z][a-z0-9-]*)(?:\((?<scope>[a-z0-9][a-z0-9._/-]*)\))?(?<breaking>!)?: (?<subject>.+)$/;
 
 export function parsePullRequestTitle(title) {
@@ -91,7 +94,12 @@ function releaseNotesStatus(section) {
   };
 }
 
-export function validatePullRequest({ title, body }) {
+function mayOmitReleaseNotes(parsedTitle, actor) {
+  if (!parsedTitle || parsedTitle.breaking) return false;
+  return AUTOMATED_BODY_EXEMPTIONS.get(String(actor || ""))?.has(parsedTitle.type) || false;
+}
+
+export function validatePullRequest({ title, body, actor }) {
   const errors = [];
   const parsedTitle = parsePullRequestTitle(title);
 
@@ -114,7 +122,9 @@ export function validatePullRequest({ title, body }) {
 
   const releaseNotes = extractReleaseNotesSection(body);
   if (releaseNotes === null) {
-    errors.push("Pull request body must contain a ## Release notes section.");
+    if (!mayOmitReleaseNotes(parsedTitle, actor)) {
+      errors.push("Pull request body must contain a ## Release notes section.");
+    }
     return errors;
   }
 
@@ -156,7 +166,8 @@ function pullRequestFromEvent(path) {
   }
   return {
     title: event.pull_request.title,
-    body: event.pull_request.body || ""
+    body: event.pull_request.body || "",
+    actor: event.sender?.login || event.pull_request.user?.login || ""
   };
 }
 

@@ -103,3 +103,11 @@ Releases use a reviewable release pull request rather than direct version commit
 The initial `historyBaseline` in `release.config.json` is a one-time migration guard. Version `2.3.0` was recorded on two sibling commits: the tag and the current `main` commit contain the same UI release with a small metadata difference. The baseline prevents that already documented change from being released again, then removes itself from the first generated release pull request.
 
 Version tags intentionally keep the repository's existing format (`2.4.0`, without a `v` prefix). The workflow uses the dedicated `automation/release` branch. Its default GitHub token is sufficient to maintain the pull request and the workflow runs the full release gate itself. Repositories whose branch rules require checks triggered by the pull request can provide a fine-grained `RELEASE_PR_TOKEN` secret with repository contents and pull-request write access.
+
+
+## Dependency and security automation
+
+- Dependabot groups npm and GitHub Actions updates every Monday, uses Conventional Commit prefixes, and keeps immutable action SHA pins current.
+- Dependabot maintenance pull requests may omit the custom release-note section, but their generated `build(deps)` or `ci(deps)` title is still validated.
+- **Dependency Review** fails when a pull request introduces a dependency with a known high- or critical-severity vulnerability.
+- **CodeQL** analyzes JavaScript and GitHub Actions on pushes, pull requests, a weekly schedule and manual dispatch, using the `security-extended` query suite.

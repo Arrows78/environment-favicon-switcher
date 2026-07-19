@@ -83,3 +83,26 @@ test("rejects empty maintenance N/A entries", () => {
   });
   assert.ok(errors.some((error) => error.includes("explained N/A")));
 });
+
+test("allows Dependabot maintenance pull requests without a custom body section", () => {
+  assert.deepEqual(validatePullRequest({
+    title: "build(deps): bump the npm group",
+    body: "Bumps the npm group with two updates.",
+    actor: "dependabot[bot]"
+  }), []);
+
+  assert.deepEqual(validatePullRequest({
+    title: "ci(deps): bump the github-actions group",
+    body: "Bumps the github-actions group.",
+    actor: "dependabot[bot]"
+  }), []);
+});
+
+test("does not grant the Dependabot body exemption to user-facing changes", () => {
+  const errors = validatePullRequest({
+    title: "feat: add an automated environment",
+    body: "Automated pull request body.",
+    actor: "dependabot[bot]"
+  });
+  assert.ok(errors.some((error) => error.includes("## Release notes")));
+});
