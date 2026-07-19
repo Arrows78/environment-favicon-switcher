@@ -352,14 +352,26 @@ button.icon-button {
 }
 
 .icon {
-  width: var(--size-icon-md);
-  height: var(--size-icon-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--size-icon-md);
+  block-size: var(--size-icon-md);
   flex: 0 0 auto;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  font-size: var(--size-icon-md);
+  line-height: 1;
+}
+
+.icon-sm {
+  inline-size: var(--size-icon-sm);
+  block-size: var(--size-icon-sm);
+  font-size: var(--size-icon-sm);
+}
+
+.icon-lg {
+  inline-size: var(--size-icon-lg);
+  block-size: var(--size-icon-lg);
+  font-size: var(--size-icon-lg);
 }
 
 input,
