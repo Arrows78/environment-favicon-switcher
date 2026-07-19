@@ -95,6 +95,8 @@ jobs:
             echo
             echo "This pull request was generated from Conventional Commits since $PREVIOUS_VERSION."
             echo
+            echo "## Release notes"
+            echo
             node scripts/release.mjs notes --version "$VERSION"
             echo
             echo "---"

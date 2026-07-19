@@ -54,6 +54,7 @@ npm run package:extension # Deterministic runtime ZIP
 npm run package:verify    # Build twice, compare bytes and write SHA256SUMS
 npm run build             # Complete release gate
 npm run release:plan      # Preview the next version and generated notes
+npm run pr:check -- --title "fix: example" --body-file PR.md
 ```
 
 The static validator checks JavaScript and JSON syntax, manifest and HTML references, locale parity, translation usage, unsafe runtime sinks, default settings and repository file size. The release validator additionally keeps `manifest.json`, `package.json`, `package-lock.json` and the newest changelog entry on the same version.
@@ -72,17 +73,19 @@ ci: verify packaged extension
 chore: update repository metadata
 ```
 
-Use an imperative, lower-case subject without a trailing period. Add a body when the motivation, migration behavior or security impact is not obvious. Use `BREAKING CHANGE:` only when existing configurations or public behavior require manual action.
+Use an imperative, lower-case subject without a trailing period. Add a body when the motivation, migration behavior or security impact is not obvious. Use `BREAKING CHANGE:` only when existing configurations or public behavior require manual action. Pull request titles follow the same format because the squash or merge title feeds release planning.
 
 ## Pull request checklist
 
 - The change has one clear purpose.
+- The title follows the repository Conventional Commit format.
+- The `## Release notes` section contains a user-facing bullet, or an explained `N/A` for internal work.
 - `npm run build` passes.
 - User-facing behavior has tests where practical.
 - Chrome/Chromium has been tested when content, background, popup or manifest behavior changed.
 - Firefox has been tested when browser API or background behavior changed.
 - English and French messages remain in parity.
-- `CHANGELOG.md` documents user-visible changes.
+- User-visible wording is suitable for automatic inclusion in `CHANGELOG.md`.
 - No secret, internal credential or private URL has been added.
 - Permissions have not expanded without a documented reason.
 
@@ -90,7 +93,7 @@ Use an imperative, lower-case subject without a trailing period. Add a body when
 
 Releases use a reviewable release pull request rather than direct version commits.
 
-1. Merge focused changes to `main` with Conventional Commit titles. A breaking change uses `!` or a `BREAKING CHANGE:` footer.
+1. Open focused pull requests with Conventional Commit titles and a `## Release notes` section. The **Pull Request Policy** workflow validates both from trusted base-branch code. A breaking change uses `!` or a `BREAKING CHANGE:` footer.
 2. The **Release PR** workflow scans first-parent history from the current version tag and infers the next version: `fix`/`perf`/`security` produce a patch, `feat` produces a minor release and breaking changes produce a major release.
 3. The workflow updates `manifest.json`, `package.json`, both version fields in `package-lock.json`, and `CHANGELOG.md`. The changelog keeps a blank `Unreleased` section and the Keep a Changelog category order.
 4. Review the generated release pull request, its changelog wording and the complete build result. Use the workflow's optional `release_as` input only for an intentional override.

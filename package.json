@@ -14,7 +14,8 @@
     "release:prepare": "node scripts/release.mjs prepare",
     "release:notes": "node scripts/release.mjs notes",
     "release:publish-check": "node scripts/publish.mjs check",
-    "package:verify": "node scripts/verify-package.mjs"
+    "package:verify": "node scripts/verify-package.mjs",
+    "pr:check": "node scripts/check-pr.mjs"
   },
   "engines": {
     "node": ">=22"
