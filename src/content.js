@@ -51,24 +51,51 @@
     return "image/x-icon";
   }
 
+  function isLastFavicon(link) {
+    if (!document.head) return false;
+
+    const faviconLinks = Array.from(document.head.children).filter((element) =>
+      element.matches?.(ICON_SELECTOR),
+    );
+
+    return faviconLinks[faviconLinks.length - 1] === link;
+  }
+
   function setManagedFavicon(href) {
     if (!document.head || !href) {
       removeManagedFavicon();
       return;
     }
 
+    const expectedType = faviconType(href);
     let link = managedFavicon();
+
     if (!link) {
       link = document.createElement("link");
       link.rel = "icon";
       link.setAttribute(MANAGED_FAVICON_ATTRIBUTE, "true");
     }
-    link.type = faviconType(href);
-    link.href = href;
 
-    // Keep the managed favicon last without mutating or disabling page-owned icons.
-    if (link.parentNode) link.remove();
-    document.head.appendChild(link);
+    // Do not reassign attributes if they are already correct.
+    // Reassigning href can trigger a new download.
+    if (link.getAttribute("rel") !== "icon") {
+      link.rel = "icon";
+    }
+
+    if (link.getAttribute("type") !== expectedType) {
+      link.type = expectedType;
+    }
+
+    if (link.getAttribute("href") !== href) {
+      link.href = href;
+    }
+
+    // Only move the favicon if a page-owned icon has been placed after it,
+    // or if it is not yet attached to the document.
+    if (link.parentNode !== document.head || !isLastFavicon(link)) {
+      link.remove();
+      document.head.appendChild(link);
+    }
   }
 
   function stripManagedPrefix(title) {
@@ -223,7 +250,16 @@
       const titleChanged =
         currentSettings?.titlePrefixEnabled &&
         mutations.some(mutationChangesApplicationTitle);
-      const faviconChanged = mutations.some(mutationNeedsFaviconReapply);
+
+      const managedFaviconMissing =
+        currentSettings?.reapplyOnChanges &&
+        currentRule &&
+        !currentRule.keepOriginalFavicon &&
+        !managedFavicon();
+
+      const faviconChanged =
+        managedFaviconMissing || mutations.some(mutationNeedsFaviconReapply);
+
       if (titleChanged) captureApplicationTitle();
       if (titleChanged || faviconChanged)
         scheduleApply(titleChanged ? "title mutation" : "favicon mutation");
