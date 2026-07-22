@@ -319,7 +319,7 @@ No project-owned synchronization server is involved.
 ## 🌍 Browser compatibility
 
 The code targets Manifest V3 WebExtensions and contains both the Chromium service-worker entry point and Firefox-compatible background scripts.
-It is intended for current Chrome and Chromium-family browsers and Firefox 109 or newer.
+It is intended for current Chrome and Chromium-family browsers and Firefox 140 or newer.
 
 ## 🔒 Security considerations
 

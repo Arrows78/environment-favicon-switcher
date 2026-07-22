@@ -41,14 +41,17 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "{3fda7578-a517-4335-8ec4-cad2a55b1979}",
-      "strict_min_version": "109.0"
-    }
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["icons/*"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+      "id": "environment-favicon-switcher@arrows78.github.io",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    },
+    "web_accessible_resources": [
+      {
+        "resources": ["icons/*"],
+        "matches": ["<all_urls>"]
+      }
+    ]
+  }
 }

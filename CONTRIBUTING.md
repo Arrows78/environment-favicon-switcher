@@ -7,7 +7,7 @@ Thank you for improving Environment Favicon Switcher. Keep changes focused, test
 - Node.js 22 or newer. Node.js 24 is the preferred local release.
 - npm, included with Node.js.
 - A current Chromium-family browser for unpacked-extension testing.
-- Firefox 109 or newer for Firefox-specific testing when behavior is affected.
+- Firefox 140 or newer for Firefox-specific testing when behavior is affected.
 
 Install the project metadata with:
 
