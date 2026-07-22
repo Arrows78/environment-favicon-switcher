@@ -1,5 +1,15 @@
 # 🌍 Environment Favicon Switcher
 
+![GitHub last commit](https://img.shields.io/github/last-commit/Arrows78/environment-favicon-switcher?style=for-the-badge&color=FD8494&logoColor=D9E0EE&logo=github)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Arrows78/environment-favicon-switcher?style=for-the-badge&color=FF6022&logoColor=D9E0EE&logo=git)
+![GitHub repo size](https://img.shields.io/github/repo-size/Arrows78/environment-favicon-switcher?style=for-the-badge&color=FECB02&logoColor=D9E0EE&logo=databricks)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Arrows78/environment-favicon-switcher?style=for-the-badge&color=5A59AD&logoColor=D9E0EE&logo=sublimetext)
+![GitHub language count](https://img.shields.io/github/languages/count/Arrows78/environment-favicon-switcher?style=for-the-badge&color=F93538&logoColor=D9E0EE&logo=polymerproject)
+![Github open issues](https://img.shields.io/github/issues/Arrows78/environment-favicon-switcher?style=for-the-badge&color=D9E0EE&logoColor=D9E0EE&logo=jira)
+![GitHub Created At](https://img.shields.io/github/created-at/Arrows78/environment-favicon-switcher?style=for-the-badge&color=3DB876&logoColor=D9E0EE&logo=clockify)
+[![Manifest V3](https://img.shields.io/badge/Manifest-V3-4285F4?style=for-the-badge&logo=googlechrome&logoColor=D9E0EE)](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
+[![License: MIT](https://img.shields.io/badge/License-MIT-CBA6F7?style=for-the-badge&logo=opensourceinitiative&logoColor=D9E0EE)](LICENSE)
+
 **Environment Favicon Switcher** is a Manifest V3 browser extension that makes local, review, sandbox, staging, and production tabs immediately distinguishable.
 
 It can replace a page favicon, add a toolbar badge, and optionally prefix the tab title, while keeping all URL matching and configuration logic inside the browser.
@@ -577,3 +587,9 @@ Contributions are welcome.
 Keep pull requests focused, document user-facing behavior changes, and run `npm run build` before submission.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete workflow.
+
+## ©️ License
+
+Environment Favicon Switcher is released under the [LICENSE](MIT License).
+
+Copyright © Thomas Jost.
