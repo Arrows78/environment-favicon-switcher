@@ -224,6 +224,51 @@ test("synchronized settings round-trip in quota-safe chunks and are adopted by a
   assert.equal(loaded.rules[0].name, "Synchronized");
 });
 
+test("synchronized manifests require valid byte length and checksum metadata", async () => {
+  for (const corruptManifest of [
+    { bytes: undefined },
+    { bytes: "invalid" },
+    { checksum: undefined },
+    { checksum: "not-a-checksum" },
+  ]) {
+    const { EnvFavicon, DEFAULT_SETTINGS, stores } = loadCore();
+    const settings = EnvFavicon.normalizeSettings(DEFAULT_SETTINGS);
+    settings.rules[0].name = "Local metadata backup";
+    await EnvFavicon.setStoragePreference("sync", settings);
+    stores.sync[EnvFavicon.SYNC_MANIFEST_KEY] = {
+      ...stores.sync[EnvFavicon.SYNC_MANIFEST_KEY],
+      ...corruptManifest,
+    };
+
+    const loaded = await EnvFavicon.getSettings();
+    assert.equal(loaded.rules[0].name, "Local metadata backup");
+    assert.equal(await EnvFavicon.getStoragePreference(), "local");
+    assert.equal(
+      (await EnvFavicon.getStorageStatus(loaded)).lastError,
+      "sync-corrupt",
+    );
+  }
+});
+
+test("synchronized byte-length mismatches fall back to the local backup", async () => {
+  const { EnvFavicon, DEFAULT_SETTINGS, stores } = loadCore();
+  const settings = EnvFavicon.normalizeSettings(DEFAULT_SETTINGS);
+  settings.rules[0].name = "Local length backup";
+  await EnvFavicon.setStoragePreference("sync", settings);
+  stores.sync[EnvFavicon.SYNC_MANIFEST_KEY] = {
+    ...stores.sync[EnvFavicon.SYNC_MANIFEST_KEY],
+    bytes: stores.sync[EnvFavicon.SYNC_MANIFEST_KEY].bytes + 1,
+  };
+
+  const loaded = await EnvFavicon.getSettings();
+  assert.equal(loaded.rules[0].name, "Local length backup");
+  assert.equal(await EnvFavicon.getStoragePreference(), "local");
+  assert.equal(
+    (await EnvFavicon.getStorageStatus(loaded)).lastError,
+    "sync-corrupt",
+  );
+});
+
 test("corrupt synchronized data falls back to the local backup", async () => {
   const { EnvFavicon, DEFAULT_SETTINGS, stores } = loadCore();
   const settings = EnvFavicon.normalizeSettings(DEFAULT_SETTINGS);

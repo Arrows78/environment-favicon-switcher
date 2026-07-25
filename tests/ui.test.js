@@ -11,6 +11,7 @@ const optionsHtml = read("options.html");
 const popupHtml = read("popup.html");
 const styles = read("styles/app.css");
 const uiScript = read("src/ui.js");
+const optionsScript = read("src/options.js");
 
 function staticIds(html) {
   return Array.from(html.matchAll(/\sid="([^"]+)"/g), (match) => match[1]);
@@ -200,11 +201,13 @@ test("file pickers stay keyboard focusable", () => {
 test("group filters use pressed buttons rather than incomplete tab semantics", () => {
   assert.doesNotMatch(optionsHtml, /role="tablist"/);
   assert.match(tagById(optionsHtml, "groupTabs"), /role="group"/);
+  assert.match(optionsScript, /setAttribute\("aria-pressed"/);
+  assert.doesNotMatch(optionsScript, /setAttribute\("role",\s*"tab"\)/);
+  assert.doesNotMatch(optionsScript, /setAttribute\("aria-selected"/);
   assert.match(uiScript, /setAttribute\("aria-pressed"/);
   assert.match(uiScript, /removeAttribute\("aria-selected"\)/);
   assert.match(uiScript, /removeAttribute\("role"\)/);
 });
-
 test("live regions are scoped to concise status messages", () => {
   const rulesContainer = tagById(optionsHtml, "rulesContainer");
   assert.ok(rulesContainer);

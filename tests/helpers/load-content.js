@@ -465,6 +465,7 @@ function createTestEnvironment(url) {
     document,
     window,
     history,
+    observers,
     TestMutationObserver,
     setTimeoutFake,
     clearTimeoutFake,

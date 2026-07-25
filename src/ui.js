@@ -105,13 +105,13 @@
     groupTabs.querySelectorAll(".group-tab").forEach((button) => {
       const isActive =
         button.classList.contains("active") ||
+        button.getAttribute("aria-pressed") === "true" ||
         button.getAttribute("aria-selected") === "true";
       button.removeAttribute("role");
       button.removeAttribute("aria-selected");
       button.setAttribute("aria-pressed", String(isActive));
     });
   }
-
   function tokenizedId(value, fallback) {
     const token = String(value || "")
       .replace(/[^a-zA-Z0-9_-]+/g, "-")

@@ -35,22 +35,25 @@
   }
 
   function faviconType(href) {
-    const normalized = String(href || "").toLowerCase();
-    if (
-      normalized.startsWith("data:image/svg+xml") ||
-      normalized.endsWith(".svg")
-    )
-      return "image/svg+xml";
-    if (normalized.startsWith("data:image/png") || normalized.endsWith(".png"))
-      return "image/png";
-    if (
-      normalized.startsWith("data:image/jpeg") ||
-      /\.jpe?g(?:$|[?#])/.test(normalized)
-    )
-      return "image/jpeg";
-    return "image/x-icon";
-  }
+    const normalized = String(href || "")
+      .trim()
+      .toLowerCase();
+    const dataType = normalized.match(/^data:(image\/[a-z0-9.+-]+)(?:[;,])/i);
+    if (dataType) return dataType[1];
 
+    const extensionTypes = [
+      [/\.svg(?:$|[?#])/, "image/svg+xml"],
+      [/\.png(?:$|[?#])/, "image/png"],
+      [/\.jpe?g(?:$|[?#])/, "image/jpeg"],
+      [/\.gif(?:$|[?#])/, "image/gif"],
+      [/\.webp(?:$|[?#])/, "image/webp"],
+      [/\.avif(?:$|[?#])/, "image/avif"],
+      [/\.ico(?:$|[?#])/, "image/x-icon"],
+    ];
+    return (
+      extensionTypes.find(([pattern]) => pattern.test(normalized))?.[1] || ""
+    );
+  }
   function isLastFavicon(link) {
     if (!document.head) return false;
 
@@ -69,7 +72,6 @@
 
     const expectedType = faviconType(href);
     let link = managedFavicon();
-
     if (!link) {
       link = document.createElement("link");
       link.rel = "icon";
@@ -81,11 +83,11 @@
     if (link.getAttribute("rel") !== "icon") {
       link.rel = "icon";
     }
-
-    if (link.getAttribute("type") !== expectedType) {
-      link.type = expectedType;
+    if (expectedType) {
+      if (link.getAttribute("type") !== expectedType) link.type = expectedType;
+    } else if (link.getAttribute("type") !== null) {
+      link.removeAttribute("type");
     }
-
     if (link.getAttribute("href") !== href) {
       link.href = href;
     }
@@ -97,7 +99,6 @@
       document.head.appendChild(link);
     }
   }
-
   function stripManagedPrefix(title) {
     const normalized = String(title || "");
     if (currentPrefix && normalized.startsWith(currentPrefix)) {
@@ -168,14 +169,12 @@
         "[Environment Favicon Switcher] Unable to load settings",
         error,
       );
-      return;
+      return false;
     }
-    if (revision !== applyRevision) return;
-
+    if (revision !== applyRevision) return false;
     currentSettings = settings;
     const diagnosis = EnvFavicon.diagnoseUrl(window.location.href, settings);
     currentRule = diagnosis.winner;
-
     if (currentRule && !currentRule.keepOriginalFavicon) {
       setManagedFavicon(EnvFavicon.faviconToUrl(currentRule.favicon));
     } else {
@@ -185,8 +184,8 @@
     configureMutationObserver(settings);
     sendStatus(diagnosis);
     debug(reason, currentRule?.name || "no match", diagnosis.matches.length);
+    return true;
   }
-
   function scheduleApply(reason, delay = 60) {
     clearTimeout(applyTimer);
     applyTimer = setTimeout(() => void applyForCurrentUrl(reason), delay);
@@ -230,27 +229,24 @@
   }
 
   function configureMutationObserver(settings) {
-    const shouldObserve =
-      settings.reapplyOnChanges || settings.titlePrefixEnabled;
-    if (!shouldObserve) {
-      mutationObserver?.disconnect();
-      mutationObserver = null;
+    const shouldObserveTitle = Boolean(
+      currentRule && settings.titlePrefixEnabled,
+    );
+    const shouldObserveFavicon = Boolean(
+      currentRule &&
+      settings.reapplyOnChanges &&
+      !currentRule.keepOriginalFavicon,
+    );
+
+    mutationObserver?.disconnect();
+    mutationObserver = null;
+    if ((!shouldObserveTitle && !shouldObserveFavicon) || !document.head)
       return;
-    }
-    if (mutationObserver || !document.documentElement) return;
 
     mutationObserver = new MutationObserver((mutations) => {
-      const urlChanged = window.location.href !== lastUrl;
-      if (urlChanged) {
-        lastUrl = window.location.href;
-        scheduleApply("url mutation", 20);
-        return;
-      }
-
       const titleChanged =
         currentSettings?.titlePrefixEnabled &&
         mutations.some(mutationChangesApplicationTitle);
-
       const managedFaviconMissing =
         currentSettings?.reapplyOnChanges &&
         currentRule &&
@@ -259,12 +255,11 @@
 
       const faviconChanged =
         managedFaviconMissing || mutations.some(mutationNeedsFaviconReapply);
-
       if (titleChanged) captureApplicationTitle();
       if (titleChanged || faviconChanged)
         scheduleApply(titleChanged ? "title mutation" : "favicon mutation");
     });
-    mutationObserver.observe(document.documentElement, {
+    mutationObserver.observe(document.head, {
       attributes: true,
       attributeFilter: ["href", "rel", "type", "sizes"],
       characterData: true,
@@ -272,7 +267,6 @@
       subtree: true,
     });
   }
-
   function patchHistoryMethod(method) {
     const original = history[method];
     if (typeof original !== "function" || original.__environmentFaviconPatched)
@@ -337,7 +331,7 @@
     scheduleApply("navigation", 20),
   );
 
-  const urlWatchTimer = window.setInterval(() => {
+  window.setInterval(() => {
     if (window.location.href === lastUrl) return;
     lastUrl = window.location.href;
     scheduleApply("url watch", 20);
@@ -375,7 +369,9 @@
         return true;
       }
       if (message?.type === "ENV_FAVICON_REAPPLY") {
-        applyForCurrentUrl("manual").then(() => sendResponse({ ok: true }));
+        applyForCurrentUrl("manual")
+          .then((ok) => sendResponse({ ok }))
+          .catch(() => sendResponse({ ok: false }));
         return true;
       }
       return false;
