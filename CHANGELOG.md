@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-07-25
+
 ### Changed
 
 - Scoped content mutation observation to the document head and only while an active rule requires it.
@@ -17,6 +19,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Reported manual favicon reapplication failures instead of always returning success.
 - Validated synchronized settings against both declared byte length and checksum metadata.
 - Aligned Node.js, favicon-path, lifecycle, permission and test documentation with the implementation.
+- **content:** Prevent repeated favicon reloads ([e1c5c0f](https://github.com/Arrows78/environment-favicon-switcher/commit/e1c5c0fd0d1ab7e84a5aae10894e62ceb132ed3f))
+- **manifest:** Required Firefox 140 ([3ef605f](https://github.com/Arrows78/environment-favicon-switcher/commit/3ef605f1fedbf7ae11e1d64dd8b9260c64f39477))
+- Align favicon handling, sync validation, and documentation ([1025e86](https://github.com/Arrows78/environment-favicon-switcher/commit/1025e86ca948acaf90bd025bca365407805c2dbd))
+- **release:** Format generated metadata before validation ([02a62f6](https://github.com/Arrows78/environment-favicon-switcher/commit/02a62f68767dedf17de8811248f5f0c8e82485e8))
 
 ## [2.3.0] - 2026-07-19
 
@@ -124,7 +130,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Initial configuration import and export.
 - Installation, configuration and usage documentation.
 
-[Unreleased]: https://github.com/Arrows78/environment-favicon-switcher/compare/2.3.0...HEAD
+[Unreleased]: https://github.com/Arrows78/environment-favicon-switcher/compare/2.3.1...HEAD
+[2.3.1]: https://github.com/Arrows78/environment-favicon-switcher/compare/2.3.0...2.3.1
 [2.3.0]: https://github.com/Arrows78/environment-favicon-switcher/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/Arrows78/environment-favicon-switcher/compare/2.1.0...2.2.0
 [2.1.0]: https://github.com/Arrows78/environment-favicon-switcher/compare/2.0.0...2.1.0
