@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Scoped content mutation observation to the document head and only while an active rule requires it.
+- Removed the redundant `activeTab` permission and aligned group-filter ARIA state at creation time.
+
+### Fixed
+
+- Detected favicon MIME types accurately for data URLs and common image extensions without mislabeling unknown resources as ICO.
+- Reported manual favicon reapplication failures instead of always returning success.
+- Validated synchronized settings against both declared byte length and checksum metadata.
+- Aligned Node.js, favicon-path, lifecycle, permission and test documentation with the implementation.
+
 ## [2.3.0] - 2026-07-19
 
 ### Added

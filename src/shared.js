@@ -340,7 +340,6 @@
       "sync",
     );
     const manifest = manifestResult?.[SYNC_MANIFEST_KEY];
-
     if (!manifest) {
       if (manifestResult?.settings) return manifestResult.settings;
       throw new SettingsStorageError(
@@ -358,8 +357,18 @@
       );
     }
 
-    const chunkCount = Number.parseInt(manifest.chunks, 10);
-    if (!Number.isFinite(chunkCount) || chunkCount < 1 || chunkCount > 64) {
+    const chunkCount = Number(manifest.chunks);
+    const expectedBytes = Number(manifest.bytes);
+    const expectedChecksum = String(manifest.checksum || "").toLowerCase();
+    if (
+      !Number.isInteger(chunkCount) ||
+      chunkCount < 1 ||
+      chunkCount > 64 ||
+      !Number.isInteger(expectedBytes) ||
+      expectedBytes < 0 ||
+      expectedBytes > MAX_SYNC_BYTES ||
+      !/^[0-9a-f]{8}$/.test(expectedChecksum)
+    ) {
       throw new SettingsStorageError(
         "sync-corrupt",
         "The synchronized configuration manifest is invalid.",
@@ -379,7 +388,13 @@
     }
 
     const serialized = chunks.join("");
-    if (manifest.checksum && checksum(serialized) !== manifest.checksum) {
+    if (byteLength(serialized) !== expectedBytes) {
+      throw new SettingsStorageError(
+        "sync-corrupt",
+        "The synchronized configuration byte length is invalid.",
+      );
+    }
+    if (checksum(serialized) !== expectedChecksum) {
       throw new SettingsStorageError(
         "sync-corrupt",
         "The synchronized configuration checksum is invalid.",
@@ -402,7 +417,6 @@
       );
     }
   }
-
   async function recordStorageFallback(error) {
     await setStorage(
       {

@@ -138,7 +138,7 @@ A separate UAT rule can then use priority `90`, making the intended result expli
 
 A rule can use:
 
-- a bundled path such as `icons/favicon-staging.ico`;
+- a bundled path such as `icons/favicon-staging.png`;
 - a user-provided HTTPS image URL;
 - an imported image stored as a data URL, up to 128 KiB;
 - a generated SVG favicon created from the rule label and color.
@@ -189,7 +189,7 @@ This makes broad rules and precedence errors visible before they affect real tab
 
 Local storage is the default. Browser synchronization can be enabled from the options page.
 
-Synchronized settings are serialized in UTF-8, split into quota-safe chunks, protected by a checksum, and limited to 80 KiB. A complete local copy is kept as a backup. If synchronization is unavailable, corrupt, or over the configured size limit, the extension falls back to the local copy and shows the reason in the options page.
+Synchronized settings are serialized in UTF-8, split into quota-safe chunks, validated against their declared byte length and checksum, and limited to 80 KiB. A complete local copy is kept as a backup. If synchronization is unavailable, corrupt, or over the configured size limit, the extension falls back to the local copy and shows the reason in the options page.
 Synchronization is provided by the browser account. Enabling it may copy rule names, URL patterns, and embedded favicon data to the browser vendor's synchronization service. No project-owned server is involved.
 
 Large imported favicons can make a configuration unsuitable for synchronized storage. Generated SVG favicons are compact and generally preferable for synchronized profiles.
@@ -228,7 +228,7 @@ The content script:
 1. loads normalized settings;
 2. diagnoses the current URL and selects the deterministic winner;
 3. applies a managed favicon and optional title prefix;
-4. watches SPA history changes, relevant favicon mutations, and application title updates;
+4. watches SPA history changes and, only while a matching rule requires it, relevant favicon and title mutations inside `<head>`;
 5. reacts to local or synchronized storage updates;
 6. sends a compact status message for the toolbar badge and popup.
 
@@ -238,7 +238,7 @@ The title prefix tracks subsequent SPA title changes and restores the latest app
 
 ## 👩‍💻 Development
 
-Node.js 20 or newer is required for repository tooling. The extension itself has no runtime package dependency.
+Node.js 22 or newer is required for repository tooling. Node.js 24 is the preferred local release from `.nvmrc`. The extension itself has no runtime package dependency.
 
 ```bash
 npm ci
@@ -250,7 +250,7 @@ Available commands:
 
 | Command                     | Result                                                                                                                                          |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `npm test`                  | Runs the Node test suite for matching, migration, imports, and synchronized storage.                                                            |
+| `npm test`                  | Runs the Node test suite for rule evaluation, storage, content lifecycle, and UI invariants.                                                    |
 | `npm run lint`              | Checks JavaScript syntax, JSON, manifest references, HTML assets, locale parity, translation keys, unsafe DOM sinks, and default-rule validity. |
 | `npm run validate`          | Runs static validation and all tests.                                                                                                           |
 | `npm run package:extension` | Creates a deterministic runtime-only ZIP in `dist/`.                                                                                            |
@@ -289,8 +289,7 @@ See [Architecture](docs/ARCHITECTURE.md) for data flow, invariants, and storage 
 The extension requests the following permissions:
 
 - `storage`: saves settings locally and, when enabled, through browser synchronization.
-- `tabs`: lets the popup read the active tab URL and update toolbar state.
-- `activeTab`: supports explicit interaction with the selected tab.
+- `tabs`: lets the popup read the active tab URL and lets the background maintain toolbar state.
 - `<all_urls>`: lets the content script evaluate user-defined rules on arbitrary web applications.
 
 The extension applies page changes only when an enabled rule matches the current URL.

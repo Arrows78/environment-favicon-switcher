@@ -99,7 +99,7 @@ The content script owns exactly one element marked with `data-environment-favico
 
 When a matching rule needs a replacement, the script creates or updates that element and appends it last in `<head>`. Existing page icon nodes remain untouched. When no replacement is needed, only the managed node is removed.
 
-A mutation observer watches relevant icon and title changes. Reapplication is debounced, and mutations caused by the managed icon itself are ignored. This avoids feedback loops while keeping the extension effective on applications that rewrite their favicons after load.
+A mutation observer is attached to `<head>` only while a matching rule needs favicon reapplication or title-prefix tracking. It is disconnected on non-matching pages and for rules that preserve the original favicon without a title prefix. Reapplication is debounced, and mutations caused by the managed icon itself are ignored. This avoids feedback loops while keeping the extension effective on applications that rewrite their favicons after load.
 
 ## Title lifecycle
 
@@ -128,7 +128,7 @@ When synchronization is enabled:
 5. Chunks and manifest are written to `storage.sync`.
 6. Stale chunks from an older, larger configuration are removed.
 
-Reads verify the manifest, chunk presence, checksum, JSON syntax and top-level object shape. Any failure records a user-visible reason, switches the preference to local and returns the local backup.
+Reads verify the manifest, chunk presence, declared UTF-8 byte length, required checksum, JSON syntax and top-level object shape. Any failure records a user-visible reason, switches the preference to local and returns the local backup.
 
 The extra application limit is intentionally lower than browser-wide aggregate quotas so that embedded favicons fail predictably before partial writes become likely.
 
@@ -165,7 +165,9 @@ Background code is shared by the Chromium service worker and Firefox background 
 - exclusions, priorities, tie breaking and global disablement;
 - favicon generation and label sanitization;
 - versioned/legacy imports and merge semantics;
-- synchronized round trips, Unicode chunk boundaries, corruption, fallback and size limits.
+- synchronized round trips, manifest metadata, Unicode chunk boundaries, corruption, fallback and size limits.
+
+`tests/content.test.js` validates managed-favicon recovery, mutation-observer scoping and favicon MIME metadata.
 
 `tests/ui.test.js` validates the options page and popup markup, CSS design tokens and `src/ui.js` behavior:
 

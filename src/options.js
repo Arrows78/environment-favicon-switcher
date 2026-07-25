@@ -237,8 +237,7 @@
       const button = createElement("button", "group-tab");
       button.type = "button";
       button.dataset.groupId = group.id;
-      button.setAttribute("role", "tab");
-      button.setAttribute("aria-selected", String(activeGroupId === group.id));
+      button.setAttribute("aria-pressed", String(activeGroupId === group.id));
       button.classList.toggle("active", activeGroupId === group.id);
 
       const dot = createElement("span", "group-tab-dot");
