@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.RELEASE_PR_TOKEN || github.token }}
+
     steps:
       - name: Check out repository and tags
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -58,10 +59,23 @@ jobs:
         shell: bash
         run: |
           arguments=(prepare)
+
           if [ -n "$RELEASE_AS" ]; then
             arguments+=(--release-as "$RELEASE_AS")
           fi
+
           node scripts/release.mjs "${arguments[@]}"
+
+      - name: Format generated release metadata
+        if: steps.release.outputs.release == 'true'
+        run: >
+          npx prettier
+          CHANGELOG.md
+          manifest.json
+          package.json
+          package-lock.json
+          release.config.json
+          --write
 
       - name: Validate the release candidate
         if: steps.release.outputs.release == 'true'
